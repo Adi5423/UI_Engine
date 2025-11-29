@@ -11,10 +11,17 @@ Application::Application()
     m_Window = Window::Create();
     m_ImGuiLayer = new ImGuiLayer();
     m_ImGuiLayer->OnAttach((GLFWwindow*)m_Window->GetNativeWindow());
+    
+    m_EditorLayer = new EditorLayer();
+    m_EditorLayer->OnAttach();
+
 }
 
 Application::~Application()
 {
+    m_EditorLayer->OnDetach();
+    delete m_EditorLayer;
+
     delete m_Window;
 }
 
@@ -30,7 +37,7 @@ void Application::Run()
         // Begin ImGui frame
         m_ImGuiLayer->Begin();
 
-        // ------------------ EDITOR PANELS DOCKSPACE ------------------------
+        // ------------------ ROOT DOCKSPACE ------------------------
         {
             static bool dockspaceOpen = true;
             static bool opt_fullscreen = true;
@@ -48,15 +55,19 @@ void Application::Run()
                 window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
             }
 
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-            ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
-            ImGui::PopStyleVar();
+            // Flat, full-screen root window with no padding
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
-            // Dockspace
-            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+            ImGui::Begin("##RootDockSpace", &dockspaceOpen, window_flags);
+            ImGui::PopStyleVar(3);
+
+            // Dockspace node
+            ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
             ImGui::DockSpace(dockspace_id, ImVec2(0, 0), dockspace_flags);
 
-            // MenuBar
+            // Top menu bar
             if (ImGui::BeginMenuBar())
             {
                 if (ImGui::BeginMenu("File"))
@@ -66,12 +77,18 @@ void Application::Run()
 
                     ImGui::EndMenu();
                 }
+
+                // You can add Edit/View/Help here later
+
                 ImGui::EndMenuBar();
             }
 
             ImGui::End();
         }
-        // -----------------------------------------------------
+        // ----------------------------------------------------------
+
+        // Draw all editor panels *inside* that dockspace
+        m_EditorLayer->OnImGuiRender();
 
         // End ImGui frame (render)
         m_ImGuiLayer->End();
