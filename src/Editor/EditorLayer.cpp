@@ -34,6 +34,10 @@ void EditorLayer::OnAttach()
         floor.AddComponent<TagComponent>("Floor");
         floor.AddComponent<TransformComponent>();
     }
+
+    // Create framebuffer
+    m_Framebuffer = std::make_unique<Framebuffer>(1280, 720);
+    Renderer::Init();
 }
 
 void EditorLayer::OnDetach()
@@ -202,11 +206,31 @@ void EditorLayer::DrawViewportPanel()
 
     if (ImGui::Begin("Viewport", nullptr, viewportFlags))
     {
-        ImGui::TextDisabled("Viewport");
-        ImGui::Separator();
+        // Determine available size
+        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+        m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-        ImVec2 size = ImGui::GetContentRegionAvail();
-        ImGui::Dummy(size); // reserved area for the framebuffer later
+        // Resize framebuffer if needed
+        if ((uint32_t)m_ViewportSize.x > 0 &&
+            (uint32_t)m_ViewportSize.y > 0 &&
+            (m_Framebuffer->GetWidth() != (uint32_t)m_ViewportSize.x ||
+                m_Framebuffer->GetHeight() != (uint32_t)m_ViewportSize.y))
+        {
+            m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+        }
+
+        // Render into framebuffer
+        m_Framebuffer->Bind();
+        Renderer::Clear({ 0.12f, 0.12f, 0.14f, 1.0f });
+
+        // (Later: render 3D scene here)
+
+        m_Framebuffer->Unbind();
+
+        // Draw framebuffer texture in ImGui
+        uint32_t textureID = m_Framebuffer->GetColorAttachment();
+        ImGui::Image((void*)(intptr_t)textureID, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
 }
+

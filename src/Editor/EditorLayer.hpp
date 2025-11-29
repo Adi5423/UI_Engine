@@ -6,6 +6,8 @@
 #include "../Scene/Scene.hpp"
 #include "../Scene/Entity.hpp"
 #include "../Scene/Components.hpp"
+#include "../Renderer/Framebuffer.hpp"
+#include "../Renderer/Renderer.hpp"
 
 class EditorLayer
 {
@@ -20,6 +22,9 @@ public:
 private:
     // Panels will operate on this active scene
     std::unique_ptr<Scene> m_ActiveScene;
+
+    std::unique_ptr<Framebuffer> m_Framebuffer;
+    glm::vec2 m_ViewportSize = { 1280.0f, 720.0f };
 
     // Currently selected entity in Hierarchy
     Entity m_SelectedEntity;
