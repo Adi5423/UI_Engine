@@ -1,0 +1,10 @@
+start::
+./vendor/entt/
+./vendor/glfw/
+./vendor/glm/
+./vendor/imgui/
+./vendor/stb/
+./.git
+./out/
+./build/
+:end
