@@ -8,7 +8,13 @@ set(ENGINE_SRC
     Scene/Scene.cpp
 )
 
-add_library(UICheckEngine STATIC ${ENGINE_SRC})
+add_library(UICheckEngine STATIC ${ENGINE_SRC} 
+        "Rendering/Shader.cpp" 
+        "Rendering/Buffer.cpp" 
+        "Rendering/VertexArray.cpp" 
+        "Rendering/EditorCamera.cpp"
+
+)
 
 target_include_directories(UICheckEngine PUBLIC
     ${CMAKE_SOURCE_DIR}/Engine
