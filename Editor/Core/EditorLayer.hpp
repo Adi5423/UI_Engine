@@ -2,6 +2,8 @@
 
 #include <memory>
 #include <string>
+#include <glm/glm.hpp>
+
 
 #include <Scene/Scene.hpp>
 #include <Scene/Entity.hpp>
