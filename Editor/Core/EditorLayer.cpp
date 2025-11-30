@@ -1,24 +1,17 @@
 ﻿#include "EditorLayer.hpp"
 
 #include <imgui.h>
-#include <glm/glm.hpp>            //  REQUIRED FIRST
-#include <glm/gtc/type_ptr.hpp>   //  THEN this
+#include <glad/glad.h>      // for glDrawElements etc.
+#include <glm/glm.hpp>
 
-
-EditorLayer::EditorLayer()
-{
-}
-
-EditorLayer::~EditorLayer()
-{
-}
+EditorLayer::EditorLayer() = default;
+EditorLayer::~EditorLayer() = default;
 
 void EditorLayer::OnAttach()
 {
-    // Create a new Scene and add some test entities
+    // Scene setup
     m_ActiveScene = std::make_unique<Scene>();
 
-    // Create some sample entities with Tag + Transform
     {
         Entity camera = m_ActiveScene->CreateEntity("Camera");
         camera.AddComponent<TagComponent>("Camera");
@@ -37,23 +30,73 @@ void EditorLayer::OnAttach()
         floor.AddComponent<TransformComponent>();
     }
 
-    // Create framebuffer
+    // Framebuffer
     m_Framebuffer = std::make_unique<Framebuffer>(1280, 720);
+
+    // ---------- Simple cube geometry ----------
+    float vertices[] = {
+        // positions (a simple quad in front for now)
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+        -0.5f,  0.5f, -0.5f,
+    };
+
+    uint32_t indices[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
+
+    m_CubeVA = std::make_unique<VertexArray>();
+    auto vb = new VertexBuffer(vertices, sizeof(vertices));
+    auto ib = new IndexBuffer(indices, 6);
+    m_CubeVA->AddVertexBuffer(vb);
+    m_CubeVA->SetIndexBuffer(ib);
+
+    // ---------- Simple shader ----------
+    std::string vs = R"(
+#version 450 core
+
+layout(location = 0) in vec3 aPos;
+
+uniform mat4 u_ViewProj;
+
+void main()
+{
+    gl_Position = u_ViewProj * vec4(aPos, 1.0);
+}
+)";
+
+    std::string fs = R"(
+#version 450 core
+
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = vec4(0.2, 0.7, 1.0, 1.0);
+}
+)";
+
+    m_Shader = std::make_unique<Shader>(vs, fs);
+
+    // Renderer global init
     Renderer::Init();
+
+    // Initial camera aspect
+    m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
 }
 
 void EditorLayer::OnDetach()
 {
     m_ActiveScene.reset();
+    m_Framebuffer.reset();
+    m_CubeVA.reset();
+    m_Shader.reset();
 }
 
 void EditorLayer::OnImGuiRender()
 {
-    // Common panel look
-    ImGuiWindowFlags panelFlags =
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoBringToFrontOnFocus;
-
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
@@ -86,28 +129,24 @@ void EditorLayer::DrawHierarchyPanel()
             return;
         }
 
-        // Iterate over all entities that have a TagComponent
         auto& reg = m_ActiveScene->Reg();
         reg.view<TagComponent>().each([&](auto entityHandle, TagComponent& tag)
             {
                 Entity entity(entityHandle, m_ActiveScene.get());
-
-                // Highlight if this entity is currently selected
                 bool isSelected = (m_SelectedEntity.Handle() == entityHandle);
 
                 ImGuiTreeNodeFlags nodeFlags =
                     ImGuiTreeNodeFlags_Leaf |
                     ImGuiTreeNodeFlags_NoTreePushOnOpen |
                     ImGuiTreeNodeFlags_SpanAvailWidth;
+
                 if (isSelected)
                     nodeFlags |= ImGuiTreeNodeFlags_Selected;
 
                 ImGui::TreeNodeEx((void*)(uint64_t)entityHandle, nodeFlags, "%s", tag.Tag.c_str());
 
                 if (ImGui::IsItemClicked())
-                {
                     m_SelectedEntity = entity;
-                }
             });
     }
     ImGui::End();
@@ -147,9 +186,7 @@ void EditorLayer::DrawInspectorPanel()
             ImGui::Text("Name");
             ImGui::SameLine();
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
-            {
                 tag.Tag = std::string(buffer);
-            }
 
             ImGui::Separator();
         }
@@ -164,15 +201,15 @@ void EditorLayer::DrawInspectorPanel()
 
             ImGui::Text("Position");
             ImGui::SameLine();
-            ImGui::DragFloat3("##Position", glm::value_ptr(transform.Position), 0.1f);
+            ImGui::DragFloat3("##Position", &transform.Position.x, 0.1f);
 
             ImGui::Text("Rotation");
             ImGui::SameLine();
-            ImGui::DragFloat3("##Rotation", glm::value_ptr(transform.Rotation), 0.1f);
+            ImGui::DragFloat3("##Rotation", &transform.Rotation.x, 0.1f);
 
             ImGui::Text("Scale");
             ImGui::SameLine();
-            ImGui::DragFloat3("##Scale", glm::value_ptr(transform.Scale), 0.1f);
+            ImGui::DragFloat3("##Scale", &transform.Scale.x, 0.1f);
         }
     }
     ImGui::End();
@@ -190,7 +227,6 @@ void EditorLayer::DrawContentBrowserPanel()
         ImGui::Separator();
         ImGui::Spacing();
 
-        // TEMP: fake assets
         if (ImGui::Selectable("Meshes/")) {}
         if (ImGui::Selectable("Textures/")) {}
         if (ImGui::Selectable("Scenes/")) {}
@@ -208,31 +244,42 @@ void EditorLayer::DrawViewportPanel()
 
     if (ImGui::Begin("Viewport", nullptr, viewportFlags))
     {
-        // Determine available size
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-        // Resize framebuffer if needed
         if ((uint32_t)m_ViewportSize.x > 0 &&
             (uint32_t)m_ViewportSize.y > 0 &&
             (m_Framebuffer->GetWidth() != (uint32_t)m_ViewportSize.x ||
                 m_Framebuffer->GetHeight() != (uint32_t)m_ViewportSize.y))
         {
-            m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            m_Framebuffer->Resize(
+                (uint32_t)m_ViewportSize.x,
+                (uint32_t)m_ViewportSize.y
+            );
+
+            m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         }
 
-        // Render into framebuffer
+        // --- Render into framebuffer ---
         m_Framebuffer->Bind();
         Renderer::Clear({ 0.12f, 0.12f, 0.14f, 1.0f });
 
-        // (Later: render 3D scene here)
+        m_Shader->Bind();
+        m_Shader->SetMat4("u_ViewProj", m_EditorCamera.GetViewProjection());
+
+        m_CubeVA->Bind();
+        glDrawElements(GL_TRIANGLES,
+            m_CubeVA->GetIndexBuffer()->GetCount(),
+            GL_UNSIGNED_INT,
+            nullptr);
 
         m_Framebuffer->Unbind();
+        // -------------------------------
 
-        // Draw framebuffer texture in ImGui
         uint32_t textureID = m_Framebuffer->GetColorAttachment();
-        ImGui::Image((void*)(intptr_t)textureID, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image((void*)(intptr_t)textureID,
+            viewportPanelSize,
+            ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
 }
-
