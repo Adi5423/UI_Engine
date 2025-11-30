@@ -1,4 +1,4 @@
-#include "ImGuiLayer.hpp"
+﻿#include "ImGuiLayer.hpp"
 
 // ImGui core
 #include <imgui.h>
@@ -21,6 +21,21 @@ void ImGuiLayer::OnAttach(GLFWwindow* window)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
+    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports;
+
+
+    ImGui::GetMainViewport()->PlatformHandleRaw = window;
+    ImGui::GetMainViewport()->PlatformHandle = window;
+
+    // Fix window stacking issue (floating panels going behind main window)
+    ImGui::GetIO().ConfigViewportsNoDecoration = false;
+    ImGui::GetIO().ConfigViewportsNoTaskBarIcon = true;
+
+    // Always draw platform windows above main window
+    ImGuiStyle& styleFix = ImGui::GetStyle();
+    styleFix.DisplayWindowPadding = ImVec2(0, 0);
+
 
     // Dark Theme
     // ----- Style: Hazel + Minimal Flat mix -----
@@ -30,7 +45,7 @@ void ImGuiLayer::OnAttach(GLFWwindow* window)
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
         style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        //style.Colors[ImGuiCol_WindowBg].w = 1.0f;     //it breaks window Z-order (Creates separate OS windows without proper flags -> going behind main window)
     }
 
     style.WindowRounding = 4.0f;
