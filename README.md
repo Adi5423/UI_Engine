@@ -1,3 +1,9 @@
+Feel free to use this as your base for any OpenGL or engine-related project!
+=======
+# UI_Engine
+My private ui learning project for game engine.
+
+
 # GameWindow
 
 A minimal OpenGL + GLFW project that creates a working 3D-ready window with GLAD for loading OpenGL functions.
@@ -121,4 +127,3 @@ If you would like to contribute to this project, feel free to fork the repositor
 
 See [`MIT License`](LICENSE.txt).
 
-Feel free to use this as your base for any OpenGL or engine-related project!
