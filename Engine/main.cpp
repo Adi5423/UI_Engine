@@ -1,3 +1,5 @@
+// this will be deleted. (old structural code)
+
 #include "Engine/Core/Application.hpp"
 
 Application* CreateApplication()
