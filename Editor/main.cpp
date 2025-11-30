@@ -1,11 +1,14 @@
-#include <Core/Application.hpp>
-#include <Core/Window.hpp>
+#include "Core/Application.hpp"
+#include "Core/Window.hpp"
 
 #include "Core/ImGuiLayer.hpp"
 #include "Core/EditorLayer.hpp"
 
-// MOST IMPORTANT — Editor must include imgui.h
+// Including inside Editor imgui.h
 #include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
 
 int main()
 {

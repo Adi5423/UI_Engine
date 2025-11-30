@@ -9,7 +9,10 @@ add_executable(UICheckEditor ${EDITOR_SRC})
 target_include_directories(UICheckEditor PRIVATE
     ${CMAKE_SOURCE_DIR}/Engine
     ${CMAKE_SOURCE_DIR}/Editor
-    ../vendor
+    ${CMAKE_SOURCE_DIR}/vendor
+    ${CMAKE_SOURCE_DIR}/vendor/glm
+    ${CMAKE_SOURCE_DIR}/vendor/stb
+    ${CMAKE_SOURCE_DIR}/vendor/entt/single_include
 )
 
 target_link_libraries(UICheckEditor PRIVATE
