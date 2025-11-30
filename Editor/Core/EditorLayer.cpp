@@ -1,7 +1,9 @@
-#include "EditorLayer.hpp"
+﻿#include "EditorLayer.hpp"
 
 #include <imgui.h>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/glm.hpp>            //  REQUIRED FIRST
+#include <glm/gtc/type_ptr.hpp>   //  THEN this
+
 
 EditorLayer::EditorLayer()
 {
