@@ -7,4 +7,6 @@ start::
 ./.git
 ./out/
 ./build/
+./.vs
+./.vscode
 :end

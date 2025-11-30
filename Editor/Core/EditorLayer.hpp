@@ -3,11 +3,12 @@
 #include <memory>
 #include <string>
 
-#include "../Scene/Scene.hpp"
-#include "../Scene/Entity.hpp"
-#include "../Scene/Components.hpp"
-#include "../Renderer/Framebuffer.hpp"
-#include "../Renderer/Renderer.hpp"
+#include <Scene/Scene.hpp>
+#include <Scene/Entity.hpp>
+#include <Scene/Components.hpp>
+#include <Rendering/Framebuffer.hpp>
+#include <Rendering/Renderer.hpp>
+
 
 class EditorLayer
 {
