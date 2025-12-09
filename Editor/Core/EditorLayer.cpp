@@ -5,6 +5,10 @@
 #include <glm/glm.hpp>
 
 #include <Core/Input/ViewportInput.hpp>
+#include <Scene/Scene.hpp>
+#include <Scene/Entity.hpp>
+#include <Scene/Components.hpp>
+
 
 EditorLayer::EditorLayer() = default;
 EditorLayer::~EditorLayer() = default;
@@ -14,22 +18,38 @@ void EditorLayer::OnAttach()
     // Scene setup
     m_ActiveScene = std::make_unique<Scene>();
 
+    // inspector pannels views.
     {
+        // Camera
         Entity camera = m_ActiveScene->CreateEntity("Camera");
         camera.AddComponent<TagComponent>("Camera");
         camera.AddComponent<TransformComponent>();
 
+        // Directional Light (no mesh yet)
         Entity light = m_ActiveScene->CreateEntity("Directional Light");
         light.AddComponent<TagComponent>("Directional Light");
         light.AddComponent<TransformComponent>();
 
+        // Cube mesh entity
         Entity cube = m_ActiveScene->CreateEntity("Cube");
         cube.AddComponent<TagComponent>("Cube");
-        cube.AddComponent<TransformComponent>();
+        auto& cubeTransform = cube.AddComponent<TransformComponent>();
+        cubeTransform.Position = { 0.0f, 0.5f, 0.0f };
+        cube.AddComponent<MeshComponent>(Mesh::CreateCube());
 
-        Entity floor = m_ActiveScene->CreateEntity("Floor");
-        floor.AddComponent<TagComponent>("Floor");
-        floor.AddComponent<TransformComponent>();
+        // Triangle mesh entity
+        Entity tri = m_ActiveScene->CreateEntity("Triangle");
+        tri.AddComponent<TagComponent>("Triangle");
+        auto& triTransform = tri.AddComponent<TransformComponent>();
+        triTransform.Position = { -1.5f, 0.3f, 0.0f };
+        tri.AddComponent<MeshComponent>(Mesh::CreateTriangle());
+
+        // Circle mesh entity (disc)
+        Entity circle = m_ActiveScene->CreateEntity("Circle");
+        circle.AddComponent<TagComponent>("Circle");
+        auto& circleTransform = circle.AddComponent<TransformComponent>();
+        circleTransform.Position = { 1.5f, 0.0f, 0.0f };
+        circle.AddComponent<MeshComponent>(Mesh::CreateCircle(32));
     }
 
     // Framebuffer

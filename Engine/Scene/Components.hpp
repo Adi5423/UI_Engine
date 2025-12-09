@@ -1,23 +1,36 @@
 #pragma once
 #include <string>
+#include <memory>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <Rendering/Mesh/Mesh.hpp>
+
+// -----------------------------
+// Tag Component
+// -----------------------------
 struct TagComponent
 {
     std::string Tag = "Entity";
 
     TagComponent() = default;
     TagComponent(const std::string& tag)
-        : Tag(tag) {
-    }
+        : Tag(tag) {}
 };
 
+// -----------------------------
+// Transform Component
+// -----------------------------
 struct TransformComponent
 {
     glm::vec3 Position{ 0.0f };
-    glm::vec3 Rotation{ 0.0f };  // Euler angles in degrees
+    glm::vec3 Rotation{ 0.0f };
     glm::vec3 Scale{ 1.0f };
+
+    TransformComponent() = default;
+    TransformComponent(const glm::vec3& pos)
+        : Position(pos) {}
 
     glm::mat4 GetMatrix() const
     {
@@ -32,9 +45,16 @@ struct TransformComponent
 
         return T * R * S;
     }
+};
 
-    TransformComponent() = default;
-    TransformComponent(const glm::vec3& pos)
-        : Position(pos) {
-    }
+// -----------------------------
+// Mesh Component  (TOP LEVEL)
+// -----------------------------
+struct MeshComponent
+{
+    std::shared_ptr<Mesh> MeshHandle;
+
+    MeshComponent() = default;
+    MeshComponent(const std::shared_ptr<Mesh>& mesh)
+        : MeshHandle(mesh) {}
 };
