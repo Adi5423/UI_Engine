@@ -2,6 +2,7 @@ set(ENGINE_SRC
     Core/Application.cpp
     Core/GLFWWindow.cpp
     Core/Input/Input.cpp
+    Core/Input/ViewportInput.cpp
 
     Rendering/Renderer.cpp
     Rendering/Framebuffer/Framebuffer.cpp
