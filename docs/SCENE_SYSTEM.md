@@ -321,7 +321,9 @@ if (mc.MeshHandle) {
 
 **Location:** `Engine/Scene/SceneAPI.hpp`
 
-Helper functions for common scene operations.
+Convenience API for common scene operations. All functions are inline and header-only.
+
+---
 
 ### Create Camera Entity
 
@@ -329,15 +331,70 @@ Helper functions for common scene operations.
 Entity SceneAPI::CreateCamera(Scene& scene, const std::string& name = "Camera");
 ```
 
-**What It Does:**
-- Creates entity with `TagComponent` and `TransformComponent`
-- Returns entity for further configuration
+**Purpose:** Creates a basic camera entity with transform and tag components.
 
-**Example:**
+**Parameters:**
+- `scene` (required) - Reference to the scene to create the entity in
+  - **Type:** `Scene&`
+  - **Note:** Must be a valid, initialized scene
+  
+- `name` (optional) - Name tag for the camera entity
+  - **Type:** `const std::string&`
+  - **Default:** `"Camera"`
+  - **Usage:** Displayed in hierarchy panel, useful for debugging
+
+**Returns:** `Entity` - The created camera entity
+
+**What It Does:**
+
+1. **Creates new entity** in the scene
+2. **Adds TagComponent** with the provided name
+3. **Adds TransformComponent** with default values:
+   - Position: `{0, 0, 0}`
+   - Rotation: `{0, 0, 0}`
+   - Scale: `{1, 1, 1}`
+4. **Returns** the entity for further configuration
+
+**Implementation:**
 ```cpp
-Entity camera = SceneAPI::CreateCamera(*scene, "Main Camera");
-camera.GetComponent<TransformComponent>().Position = glm::vec3(0, 10, 20);
+inline Entity CreateCamera(Scene& scene, const std::string& name = "Camera")
+{
+    Entity camera = scene.CreateEntity(name);
+    camera.AddComponent<TagComponent>(name);
+    camera.AddComponent<TransformComponent>();
+    return camera;
+}
 ```
+
+**Example Usage:**
+
+```cpp
+// Basic camera creation
+Entity mainCamera = SceneAPI::CreateCamera(*scene);
+
+// Named camera
+Entity debugCamera = SceneAPI::CreateCamera(*scene, "Debug Camera");
+
+// Configure camera position
+auto& transform = mainCamera.GetComponent<TransformComponent>();
+transform.Position = glm::vec3(0, 10, 20);
+transform.Rotation = glm::vec3(-30, 0, 0);  // Look down 30 degrees
+
+// Multiple cameras for different views
+Entity frontView = SceneAPI::CreateCamera(*scene, "Front View");
+Entity topView = SceneAPI::CreateCamera(*scene, "Top View");
+Entity sideView = SceneAPI::CreateCamera(*scene, "Side View");
+```
+
+**Common Use Cases:**
+- Creating main scene camera
+- Setting up multiple viewport cameras
+- Debug/development cameras
+- Placeholder for future camera component
+
+**Note:** This function does NOT add a camera component (not yet implemented). It creates an entity that can be tracked as a camera position in your scene.
+
+---
 
 ### Create Mesh Entity
 
@@ -345,22 +402,135 @@ camera.GetComponent<TransformComponent>().Position = glm::vec3(0, 10, 20);
 Entity SceneAPI::CreateMeshEntity(Scene& scene,
                                   const std::string& name,
                                   const std::shared_ptr<Mesh>& mesh,
-                                  const glm::vec3& position = {0, 0, 0});
+                                  const glm::vec3& position = {0.0f, 0.0f, 0.0f});
 ```
+
+**Purpose:** Creates a renderable entity with mesh, transform, and tag components.
+
+**Parameters:**
+
+1. **`scene`** (required) - Reference to the scene
+   - **Type:** `Scene&`
+   - **Usage:** The scene that will own this entity
+   
+2. **`name`** (required) - Entity name/tag
+   - **Type:** `const std::string&`
+   - **Usage:** Displayed in hierarchy, used for identification
+   - **Example:** `"Player"`, `"Ground Plane"`, `"Cube_01"`
+   
+3. **`mesh`** (required) - Shared pointer to mesh data
+   - **Type:** `const std::shared_ptr<Mesh>&`
+   - **Usage:** The geometry to render for this entity
+   - **Sharing:** Multiple entities can share the same mesh (efficient!)
+   - **Creation:** Use `Mesh::CreateCube()`, `Mesh::CreateCircle()`, etc.
+   
+4. **`position`** (optional) - Initial world position
+   - **Type:** `const glm::vec3&`
+   - **Default:** `{0.0f, 0.0f, 0.0f}` (origin)
+   - **Units:** World space coordinates
+   - **Example:** `{5.0f, 2.0f, -3.0f}` = X:5, Y:2, Z:-3
+
+**Returns:** `Entity` - The created mesh entity, configured and ready to render
 
 **What It Does:**
-- Creates entity with `TagComponent`, `TransformComponent`, and `MeshComponent`
-- Sets initial position
-- Returns entity
 
-**Example:**
+1. **Creates new entity** using `scene.CreateEntity(name)`
+2. **Adds TagComponent** with the provided name
+3. **Adds TransformComponent** with:
+   - Position = `position` parameter
+   - Rotation = default `{0, 0, 0}`
+   - Scale = default `{1, 1, 1}`
+4. **Adds MeshComponent** with the provided mesh handle
+5. **Returns** the entity for further customization
+
+**Implementation:**
 ```cpp
-auto cubeMesh = Mesh::CreateCube();
-Entity cube = SceneAPI::CreateMeshEntity(*scene, "Cube", cubeMesh, glm::vec3(0, 1, 0));
-
-// Further configure
-cube.GetComponent<TransformComponent>().Scale = glm::vec3(2.0f);
+inline Entity CreateMeshEntity(Scene& scene,
+                               const std::string& name,
+                               const std::shared_ptr<Mesh>& mesh,
+                               const glm::vec3& position = {0.0f, 0.0f, 0.0f})
+{
+    Entity entity = scene.CreateEntity(name);
+    entity.AddComponent<TagComponent>(name);
+    auto& tc = entity.AddComponent<TransformComponent>(position);
+    (void)tc;  // Suppress unused variable warning
+    entity.AddComponent<MeshComponent>(mesh);
+    return entity;
+}
 ```
+
+**Example Usage:**
+
+```cpp
+// Basic cube entity
+auto cubeMesh = Mesh::CreateCube();
+Entity cube = SceneAPI::CreateMeshEntity(*scene, "Cube", cubeMesh);
+
+// Cube at specific position
+Entity skyBox = SceneAPI::CreateMeshEntity(*scene, "Box", cubeMesh, 
+                                           glm::vec3(0, 1, 0));
+
+// Further configure the entity
+auto& transform = skyBox.GetComponent<TransformComponent>();
+transform.Scale = glm::vec3(2.0f);           // Double size
+transform.Rotation.y = 45.0f;                // Rotate 45° around Y
+
+// Multiple entities sharing the same mesh (memory efficient!)
+auto sphereMesh = Mesh::CreateCircle(32);
+Entity planet1 = SceneAPI::CreateMeshEntity(*scene, "Earth", sphereMesh, 
+                                            glm::vec3(-10, 0, 0));
+Entity planet2 = SceneAPI::CreateMeshEntity(*scene, "Mars", sphereMesh, 
+                                            glm::vec3(10, 0, 0));
+
+// Different mesh types
+auto pyramidMesh = Mesh::CreateTriangle3D();
+Entity pyramid = SceneAPI::CreateMeshEntity(*scene, "Pyramid", pyramidMesh,
+                                            glm::vec3(5, 0, -3));
+
+// Circle/disc for ground plane
+auto groundMesh = Mesh::CreateCircle(64);  // High-quality circle
+Entity ground = SceneAPI::CreateMeshEntity(*scene, "Ground", groundMesh);
+ground.GetComponent<TransformComponent>().Scale = glm::vec3(50.0f);  // Large platform
+```
+
+**Common Patterns:**
+
+```cpp
+// Create and immediately configure
+Entity obj = SceneAPI::CreateMeshEntity(*scene, "Object", mesh, position);
+obj.GetComponent<TransformComponent>().Scale = glm::vec3(2.0f);
+
+// Store mesh for reuse
+auto sharedMesh = Mesh::CreateCube();
+for (int i = 0; i < 10; i++) {
+    glm::vec3 pos(i * 2.0f, 0, 0);
+    Entity e = SceneAPI::CreateMeshEntity(*scene, 
+                                         "Cube_" + std::to_string(i), 
+                                         sharedMesh, 
+                                         pos);
+}
+
+// Procedural level generation
+std::vector<Entity> walls;
+for (int x = 0; x < 10; x++) {
+    for (int z = 0; z < 10; z++) {
+        if (IsWallAt(x, z)) {
+            auto wall = SceneAPI::CreateMeshEntity(*scene, 
+                                                   "Wall",
+                                                   wallMesh,
+                                                   glm::vec3(x, 0, z));
+            walls.push_back(wall);
+        }
+    }
+}
+```
+
+**Memory Management:**
+- The `std::shared_ptr<Mesh>` means multiple entities can safely share the same mesh
+- The mesh is automatically deleted when the last entity referencing it is destroyed
+- Sharing meshes is **highly recommended** for performance and memory efficiency
+
+---
 
 ### Create Default Scene
 
@@ -368,17 +538,146 @@ cube.GetComponent<TransformComponent>().Scale = glm::vec3(2.0f);
 void SceneAPI::CreateDefaultScene(Scene& scene);
 ```
 
-**What It Does:**
-Populates scene with starting content:
-- Camera entity
-- Cube at (0, 0.5, 0)
-- Triangle at (-1.5, 0.3, 0)
-- Circle at (1.5, 0, 0)
+**Purpose:** Populates an empty scene with default starter content for testing and development.
 
-**Example:**
+**Parameters:**
+- `scene` (required) - Reference to the scene to populate
+  - **Type:** `Scene&`
+  - **Note:** Typically called on a freshly created, empty scene
+
+**Returns:** `void` (modifies the scene in-place)
+
+**What It Creates:**
+
+1. **Camera Entity**
+   - Name: `"Camera"`
+   - Position: `{0, 0, 0}` (default)
+   - Components: `TagComponent`, `TransformComponent`
+
+2. **Cube Entity**
+   - Name: `"Cube"`
+   - Mesh: Unit cube (1×1×1)
+   - Position: `{0.0f, 0.5f, 0.0f}` (floating above ground)
+   - Components: `TagComponent`, `TransformComponent`, `MeshComponent`
+
+3. **Triangle/Pyramid Entity**
+   - Name: `"Triangle"`
+   - Mesh: 3D pyramid
+   - Position: `{-1.5f, 0.3f, 0.0f}` (left of center)
+   - Components: `TagComponent`, `TransformComponent`, `MeshComponent`
+
+4. **Circle/Disc Entity**
+   - Name: `"Circle"`
+   - Mesh: 32-segment circle disc
+   - Position: `{1.5f, 0.0f, 0.0f}` (right of center)
+   - Components: `TagComponent`, `TransformComponent`, `MeshComponent`
+
+**Implementation:**
 ```cpp
+inline void CreateDefaultScene(Scene& scene)
+{
+    // Camera
+    CreateCamera(scene);
+
+    // Three default meshes
+    CreateMeshEntity(scene, "Cube",     Mesh::CreateCube(),       {0.0f, 0.5f, 0.0f});
+    CreateMeshEntity(scene, "Triangle", Mesh::CreateTriangle3D(), {-1.5f, 0.3f, 0.0f});
+    CreateMeshEntity(scene, "Circle",   Mesh::CreateCircle(32),   {1.5f, 0.0f, 0.0f});
+}
+```
+
+**Scene Layout:**
+```
+           Y (Up)
+           │
+           │    Cube (0, 0.5, 0)
+           │    ███
+           │
+   ────────┼────────── X (Right)
+  Triangle │         Circle
+   /▲\     │          ◯
+(-1.5, 0.3)│      (1.5, 0)
+           │
+           │
+          Z (Forward toward viewer)
+```
+
+**Example Usage:**
+
+```cpp
+// Create and populate a new scene
 auto scene = std::make_unique<Scene>();
 SceneAPI::CreateDefaultScene(*scene);
+
+// Scene now has 4 entities ready to render
+
+// Access entities by querying components
+auto& registry = scene->Reg();
+auto view = registry.view<TagComponent>();
+for (auto entity : view) {
+    auto& tag = view.get<TagComponent>(entity);
+    std::cout << "Entity: " << tag.Tag << std::endl;
+}
+// Output:
+// Entity: Camera
+// Entity: Cube
+// Entity: Triangle
+// Entity: Circle
+```
+
+**When to Use:**
+- **Quick prototyping** - Get a scene up and running immediately
+- **Testing rendering** - Verify renderer is working
+- **Learning the engine** - See example entities in action
+- **Base template** - Start with this and modify as needed
+
+**When NOT to Use:**
+- **Production scenes** - Create your own scene setup
+- **Loading from files** - Build a custom scene loader
+- **Empty scenes** - When you need precise control from the start
+
+**Customization After Creation:**
+
+```cpp
+// Create default scene
+SceneAPI::CreateDefaultScene(*scene);
+
+// Find and modify specific entities
+auto& registry = scene->Reg();
+auto view = registry.view<TagComponent, TransformComponent>();
+
+for (auto entity : view) {
+    auto& tag = view.get<TagComponent>(entity);
+    auto& transform = view.get<TransformComponent>(entity);
+    
+    if (tag.Tag == "Cube") {
+        transform.Scale = glm::vec3(2.0f);  // Make cube bigger
+        transform.Rotation.y = 45.0f;       // Rotate 45°
+    }
+    
+    if (tag.Tag == "Circle") {
+        transform.Position.y = -0.5f;  // Lower the circle
+        transform.Scale = glm::vec3(10.0f);  // Make it a large ground plane
+    }
+}
+```
+
+**Alternatives:**
+
+If you don't want the default scene, create entities manually:
+
+```cpp
+auto scene = std::make_unique<Scene>();
+
+// Custom scene setup
+auto groundMesh = Mesh::CreateCircle(64);
+Entity ground = SceneAPI::CreateMeshEntity(*scene, "Ground", groundMesh);
+ground.GetComponent<TransformComponent>().Scale = glm::vec3(100.0f);
+
+auto buildingMesh = Mesh::CreateCube();
+Entity building = SceneAPI::CreateMeshEntity(*scene, "Building", buildingMesh,
+                                            glm::vec3(0, 5, -10));
+building.GetComponent<TransformComponent>().Scale = glm::vec3(3, 10, 3);
 ```
 
 ---
