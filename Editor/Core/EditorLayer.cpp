@@ -56,13 +56,14 @@ void EditorLayer::OnAttach()
 
 layout(location = 0) in vec3 aPos;
 
-uniform mat4 u_ViewProj;
 uniform mat4 u_Model;
+uniform mat4 u_ViewProj;
 
 void main()
 {
     gl_Position = u_ViewProj * u_Model * vec4(aPos, 1.0);
 }
+
 )";
 
     std::string fs = R"(
@@ -287,26 +288,31 @@ void EditorLayer::DrawViewportPanel()
         m_Framebuffer->Bind();
         Renderer::Clear({ 0.12f, 0.12f, 0.14f, 1.0f });
 
-        // Begin scene with current camera
-        Renderer::BeginScene(m_EditorCamera.GetViewProjection());
+        // Bind shader and set view-projection matrix
+        m_Shader->Bind();
+        m_Shader->SetMat4("u_ViewProj", m_EditorCamera.GetViewProjection());
 
+        // Loop through all entities with TransformComponent and MeshComponent
         auto& reg = m_ActiveScene->Reg();
-        auto view = reg.view<TransformComponent, MeshComponent>();
+        reg.view<TransformComponent, MeshComponent>().each(
+            [&](auto entity, TransformComponent& transform, MeshComponent& meshComp)
+            {
+                if (!meshComp.MeshHandle)
+                    return;
 
-        for (auto entityHandle : view)
-        {
-            auto& tc = view.get<TransformComponent>(entityHandle);
-            auto& mc = view.get<MeshComponent>(entityHandle);
+                // Set model matrix for this entity
+                glm::mat4 model = transform.GetMatrix();
+                m_Shader->SetMat4("u_Model", model);
 
-            if (!mc.MeshHandle)
-                continue;
+                // Bind vertex array and draw
+                auto* va = meshComp.MeshHandle->GetVertexArray();
+                va->Bind();
 
-            Renderer::Submit(mc.MeshHandle,
-                             tc.GetMatrix(),
-                             *m_Shader);
-        }
-
-        Renderer::EndScene();
+                glDrawElements(GL_TRIANGLES,
+                    meshComp.MeshHandle->GetIndexCount(),
+                    GL_UNSIGNED_INT,
+                    nullptr);
+            });
 
         m_Framebuffer->Unbind();
         // -------------------------------

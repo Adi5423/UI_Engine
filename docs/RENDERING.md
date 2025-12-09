@@ -169,12 +169,86 @@ private:
 enum class PrimitiveType {
     None = 0,
     Cube,
-    Triangle,
+    Triangle3D,
     Circle
 };
 ```
 
+### Vertex Structure
+
+All mesh geometry uses the `Vertex` structure:
+
+```cpp
+struct Vertex {
+    glm::vec3 Position;  // 3D position (x, y, z)
+    glm::vec3 Normal;    // Surface normal for lighting
+};
+```
+
+**Vertex Attributes:**
+- **Location 0:** Position (3 floats)
+- **Location 1:** Normal (3 floats)
+
+Each vertex is `sizeof(Vertex) = 24 bytes` (6 floats × 4 bytes).
+
+### Internal Mesh Constructor
+
+The private constructor handles all OpenGL setup:
+
+```cpp
+Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
+```
+
+**Parameters:**
+- `vertices` - Array of `Vertex` structs containing position and normal data
+- `indices` - Array of triangle indices (3 indices per triangle)
+
+**What It Does:**
+1. **Creates Vertex Array Object (VAO)**
+   ```cpp
+   m_VertexArray = std::make_unique<VertexArray>();
+   ```
+
+2. **Uploads Vertex Data to GPU**
+   ```cpp
+   VertexBuffer* vb = new VertexBuffer(vertices.data(), vertices.size() * sizeof(Vertex));
+   ```
+
+3. **Uploads Index Data to GPU**
+   ```cpp
+   IndexBuffer* ib = new IndexBuffer(indices.data(), (uint32_t)indices.size());
+   m_IndexCount = (uint32_t)indices.size();
+   ```
+
+4. **Configures Vertex Attributes**
+   ```cpp
+   // Position attribute (location = 0)
+   glEnableVertexAttribArray(0);
+   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 
+                        (void*)offsetof(Vertex, Position));
+   
+   // Normal attribute (location = 1)
+   glEnableVertexAttribArray(1);
+   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 
+                        (void*)offsetof(Vertex, Normal));
+   ```
+
+**Vertex Layout:**
+```
+Offset 0:  Position.x (4 bytes)
+Offset 4:  Position.y (4 bytes)
+Offset 8:  Position.z (4 bytes)
+Offset 12: Normal.x   (4 bytes)
+Offset 16: Normal.y   (4 bytes)
+Offset 20: Normal.z   (4 bytes)
+Total: 24 bytes per vertex
+```
+
+---
+
 ### Factory Methods
+
+These static methods create predefined mesh primitives.
 
 #### Create Cube
 
@@ -182,52 +256,199 @@ enum class PrimitiveType {
 static std::shared_ptr<Mesh> Mesh::CreateCube();
 ```
 
-**Geometry:**
-- Unit cube: 1×1×1 centered at origin
-- 8 vertices, 36 indices (12 triangles)
-- Axis-aligned box from (-0.5, -0.5, -0.5) to (0.5, 0.5, 0.5)
+**Purpose:** Creates a unit cube mesh centered at the origin.
+
+**Parameters:** None
+
+**Returns:** `std::shared_ptr<Mesh>` - Shared pointer to the created cube mesh
+
+**Geometry Specification:**
+- **Dimensions:** 1×1×1 unit cube
+- **Center:** Origin (0, 0, 0)
+- **Bounds:** From (-0.5, -0.5, -0.5) to (0.5, 0.5, 0.5)
+- **Vertices:** 24 (4 per face × 6 faces)
+- **Triangles:** 12 (2 per face × 6 faces)
+- **Indices:** 36 (3 per triangle × 12 triangles)
+
+**Face Layout:**
+- Front face (normal = {0, 0, 1})
+- Back face (normal = {0, 0, -1})
+- Left face (normal = {-1, 0, 0})
+- Right face (normal = {1, 0, 0})
+- Top face (normal = {0, 1, 0})
+- Bottom face (normal = {0, -1, 0})
+
+**Why 24 vertices instead of 8?**  
+Each face needs unique normals, so we cannot share vertices between faces. This allows proper lighting calculations.
 
 **Example:**
 ```cpp
-auto cube = Mesh::CreateCube();
+auto cubeMesh = Mesh::CreateCube();
+
+// Create entity with cube
+Entity cube = scene->CreateEntity("Cube");
+cube.AddComponent<TransformComponent>(glm::vec3(0, 1, 0));
+cube.AddComponent<MeshComponent>(cubeMesh);
 ```
 
-#### Create Triangle
+**Common Use Cases:**
+- Building blocks for level geometry
+- Placeholder objects
+- Physics collision boxes
+- UI elements (buttons, panels)
+
+---
+
+#### Create Triangle3D (Pyramid)
 
 ```cpp
 static std::shared_ptr<Mesh> Mesh::CreateTriangle3D();
 ```
 
-**Geometry:**
-- Single triangle in XZ plane (y = 0)
-- 3 vertices, 3 indices (1 triangle)
-- Points upward when viewed from above
+**Purpose:** Creates a 3D pyramid with a square base.
+
+**Parameters:** None
+
+**Returns:** `std::shared_ptr<Mesh>` - Shared pointer to the created pyramid mesh
+
+**Geometry Specification:**
+- **Base:** Square on XZ plane (y = 0)
+- **Base Size:** 1×1 (from -0.5 to 0.5 on X and Z)
+- **Apex Height:** 1.0 unit above base (y = 1.0)
+- **Apex Position:** Center of base (x = 0, z = 0)
+- **Vertices:** 5 (4 base corners + 1 apex)
+- **Triangles:** 6 (2 for base + 4 for sides)
+- **Indices:** 18 (3 per triangle × 6 triangles)
+
+**Vertex Positions:**
+```cpp
+Base corners:
+  (-0.5, 0.0, -0.5)  // Back-left
+  ( 0.5, 0.0, -0.5)  // Back-right
+  ( 0.5, 0.0,  0.5)  // Front-right
+  (-0.5, 0.0,  0.5)  // Front-left
+
+Apex:
+  (0.0, 1.0, 0.0)    // Top center
+```
 
 **Example:**
 ```cpp
-auto triangle = Mesh::CreateTriangle3D();
+auto pyramidMesh = Mesh::CreateTriangle3D();
+
+// Create a pyramid at position
+Entity pyramid = SceneAPI::CreateMeshEntity(*scene, "Pyramid", 
+                                           pyramidMesh, 
+                                           glm::vec3(5, 0, 0));
 ```
 
-#### Create Circle
+**Common Use Cases:**
+- Directional indicators (arrows, pointers)
+- Landmarks in 3D space
+- Simple roof structures
+- Testing 3D rendering
+
+---
+
+#### Create Circle (Flat Disc)
 
 ```cpp
 static std::shared_ptr<Mesh> Mesh::CreateCircle(uint32_t segments = 32);
 ```
 
-**Geometry:**
-- Filled circle in XZ plane (y = 0)
-- Radius: 0.5
-- Triangle fan topology (center vertex + edge vertices)
-- Configurable tessellation
+**Purpose:** Creates a flat circular disc using a triangle fan topology.
 
 **Parameters:**
-- `segments` - Number of edge segments (min: 3)
+- `segments` (optional) - Number of edge segments
+  - **Type:** `uint32_t`
+  - **Default:** 32
+  - **Minimum:** 3 (creates a triangle)
+  - **Range:** Typically 3-128
+  - **Effect:** Higher values = smoother circle, more triangles
 
-**Example:**
+**Returns:** `std::shared_ptr<Mesh>` - Shared pointer to the created circle mesh
+
+**Geometry Specification:**
+- **Plane:** XZ plane (y = 0)
+- **Radius:** 0.5 units
+- **Center:** Origin (0, 0, 0)
+- **Normal:** Upward (+Y direction: {0, 1, 0})
+- **Topology:** Triangle fan (center + perimeter vertices)
+
+**Vertex Count:** `segments + 2`
+- 1 center vertex
+- `segments + 1` perimeter vertices (first and last overlap to close the circle)
+
+**Triangle Count:** `segments`
+
+**Index Count:** `segments × 3`
+
+**Algorithm:**
 ```cpp
-auto circle = Mesh::CreateCircle(64);  // High-poly circle
-auto hexagon = Mesh::CreateCircle(6);  // Actually a hexagon
+// Center vertex at origin
+vertices[0] = { {0, 0, 0}, {0, 1, 0} };
+
+// Perimeter vertices
+float angleStep = 2π / segments;
+for (int i = 0; i <= segments; i++) {
+    float angle = angleStep * i;
+    float x = cos(angle) * 0.5;
+    float z = sin(angle) * 0.5;
+    vertices[i+1] = { {x, 0, z}, {0, 1, 0} };
+}
+
+// Triangle indices (fan from center)
+for (int i = 0; i < segments; i++) {
+    indices = [0, i+1, i+2];  // Center, current edge, next edge
+}
 ```
+
+**Segment Examples:**
+
+| Segments | Shape | Vertices | Triangles | Use Case |
+|----------|-------|----------|-----------|----------|
+| 3 | Triangle | 5 | 3 | Minimal geometry |
+| 4 | Square | 6 | 4 | Quad placeholder |
+| 6 | Hexagon | 8 | 6 | Low-poly aesthetic |
+| 8 | Octagon | 10 | 8 | Rounded corners |
+| 16 | Smooth circle | 18 | 16 | Default quality |
+| 32 | Very smooth | 34 | 32 | High quality (default) |
+| 64 | Ultra smooth | 66 | 64 | Close-up viewing |
+| 128 | Perfect circle | 130 | 128 | Maximum quality |
+
+**Example Usage:**
+
+```cpp
+// Default quality circle (32 segments)
+auto circle = Mesh::CreateCircle();
+
+// Low-poly hexagon
+auto hexagon = Mesh::CreateCircle(6);
+
+// High-quality smooth circle
+auto smoothCircle = Mesh::CreateCircle(64);
+
+// Create entity with circle mesh
+Entity disc = SceneAPI::CreateMeshEntity(*scene, "Disc", 
+                                        circle, 
+                                        glm::vec3(2, 0, 0));
+```
+
+**Common Use Cases:**
+- Ground planes/platforms
+- Circular UI elements
+- Wheels and discs
+- Target indicators
+- Area markers
+- Low-poly terrain
+
+**Performance Notes:**
+- More segments = smoother appearance but more GPU cost
+- Use 8-16 segments for distant objects
+- Use 32-64 segments for close-up objects
+- Avoid exceeding 128 segments (diminishing returns)
+
+---
 
 ### Accessors
 
@@ -237,11 +458,29 @@ uint32_t GetIndexCount() const;
 PrimitiveType GetType() const;
 ```
 
-**Usage:**
+**GetVertexArray()**
+- **Returns:** Raw pointer to the internal VAO
+- **Usage:** Bind before rendering
+- **Lifetime:** Valid as long as the Mesh exists
+
+**GetIndexCount()**
+- **Returns:** Number of indices (for `glDrawElements`)
+- **Always a multiple of 3** (triangle primitives)
+
+**GetType()**
+- **Returns:** `PrimitiveType` enum value
+- **Usage:** Identify mesh type for debugging or special handling
+
+**Example:**
 ```cpp
 auto mesh = Mesh::CreateCube();
+
+// Manual rendering
 mesh->GetVertexArray()->Bind();
 glDrawElements(GL_TRIANGLES, mesh->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+
+// Query mesh info
+std::cout << "Mesh has " << mesh->GetIndexCount() / 3 << " triangles\n";
 ```
 
 ---
