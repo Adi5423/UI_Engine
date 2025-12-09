@@ -19,6 +19,7 @@ class EditorLayer
 public:
     EditorLayer();
     ~EditorLayer();
+    EditorCamera& GetCamera() { return m_EditorCamera; } // camera and input system
 
     void OnAttach();
     void OnDetach();
