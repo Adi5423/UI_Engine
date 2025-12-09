@@ -4,7 +4,9 @@
 
 #include "Core/ImGuiLayer.hpp"
 #include "Core/EditorLayer.hpp"
+
 #include "Core/Input/Input.hpp"
+#include "Core/Input/ViewportInput.hpp"
 
 // Including inside Editor imgui.h
 #include <imgui.h>
@@ -20,6 +22,7 @@ int main()
     GLFWwindow* window = (GLFWwindow*)app.GetWindow()->GetNativeWindow();
     // Initialize Input system
     Input::Init(window);
+    ViewportInput::Init(window);
 
     // Layers
     ImGuiLayer imgui;
@@ -35,21 +38,18 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // --- Editor Camera Movement (Right mouse + WASD) ---
-        static float lastTime = (float)glfwGetTime();
-        float time = (float)glfwGetTime();
-        float dt = time - lastTime;
-        lastTime = time;
+        // ---- Viewport-Scoped Camera Input ----
 
-        bool rightMouse = Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT);
-        
-        // Lock cursor only when right mouse is held
-        glfwSetInputMode(window,
-            GLFW_CURSOR,
-            rightMouse ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-        
-        if (rightMouse)
+        // Update camera activation state based ONLY on RMB press
+        ViewportInput::UpdateCameraState(Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT));
+
+        if (ViewportInput::IsCameraActive())
         {
+            static float lastTime = (float)glfwGetTime();
+            float time = (float)glfwGetTime();
+            float dt = time - lastTime;
+            lastTime = time;
+        
             glm::vec3 dir{0.0f};
         
             if (Input::IsKeyPressed(GLFW_KEY_W)) dir.z += 1.0f;
@@ -60,12 +60,12 @@ int main()
             if (Input::IsKeyPressed(GLFW_KEY_Q)) dir.y -= 1.0f;
         
             double dx, dy;
-            Input::GetMouseDelta(dx, dy);
+            ViewportInput::GetMouseDelta(dx, dy);
         
             editor.GetCamera().ProcessKeyboard(dir, dt);
             editor.GetCamera().ProcessMouseMovement((float)dx, (float)dy);
         }
-        // ---------------------------------------------------
+
 
         //engine initialization via imgui
         imgui.Begin();

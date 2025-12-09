@@ -4,6 +4,8 @@
 #include <glad/glad.h>      // for glDrawElements etc.
 #include <glm/glm.hpp>
 
+#include <Core/Input/ViewportInput.hpp>
+
 EditorLayer::EditorLayer() = default;
 EditorLayer::~EditorLayer() = default;
 
@@ -246,6 +248,19 @@ void EditorLayer::DrawViewportPanel()
     {
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+        ViewportInput::SetViewportBounds(
+            ImGui::GetWindowPos().x,
+            ImGui::GetWindowPos().y,
+            m_ViewportSize.x,
+            m_ViewportSize.y
+        );
+
+        // if (ViewportInput::IsCameraActive())
+        // {
+        //     double dx, dy;
+        //     ViewportInput::GetMouseDelta(dx, dy);
+        //     m_EditorCamera.OnMouseMoved((float)dx, (float)dy);
+        // }
 
         if ((uint32_t)m_ViewportSize.x > 0 &&
             (uint32_t)m_ViewportSize.y > 0 &&
