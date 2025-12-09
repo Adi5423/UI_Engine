@@ -1,129 +1,183 @@
-Feel free to use this as your base for any OpenGL or engine-related project!
-=======
-# UI_Engine
-My private ui learning project for game engine.
+# UI Engine
 
-
-# GameWindow
-
-A minimal OpenGL + GLFW project that creates a working 3D-ready window with GLAD for loading OpenGL functions.
-
-This repository gives you a clean and simple starting point to build any OpenGL-based application, engine prototype, or rendering demo.
+A modern 3D game engine built with OpenGL, featuring an Entity-Component-System (ECS) architecture powered by EnTT and an ImGui-based editor interface.
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-* Modern **OpenGL 4.6 Core Profile**
-* **GLFW** for window + context creation
-* **GLAD** loader (static)
-* Clean CMake-based build system
-* Cross-platform structure (Windows/Linux)
-* Zero clutter — just run and start coding
-
----
-
-## 📦 Requirements
-
-* CMake 3.20+
-* C++20 compiler
-* Ninja / Make / MSVC (any backend supported by CMake)
-* Git (for cloning submodules if needed)
+- **Modern OpenGL 4.6 Core Profile** rendering
+- **Entity-Component-System** architecture using [EnTT](https://github.com/skypjack/entt)
+- **ImGui-based Editor** with dockable viewports and scene hierarchy
+- **Viewport-Scoped Input System** for precise camera control
+- **3D Mesh Rendering** with primitive generation (cube, triangle, circle)
+- **Editor Camera** with fly-through controls (WASD + right-mouse look)
+- **Framebuffer Rendering** to ImGui viewport textures
+- **Component-based Scene Management** with transform hierarchy
+- **Cross-platform CMake Build System**
 
 ---
 
-## 🔧 Build Instructions
+## 🚀 Quick Start
 
-Open a terminal inside the project root and run:
+### Prerequisites
 
-```sh
+- CMake 3.20+
+- C++20 compiler (MinGW-w64 on Windows, GCC/Clang on Linux)
+- Git (for cloning submodules)
+
+### Build Instructions
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd UI_Engine
+
+# Configure CMake
 cmake -S . -B build
+
+# Build the project
 cmake --build build
+
+# Run the editor
+./build/bin/UICheckEditor
 ```
 
-This generates the executable:
-
-```
-build/Sandbox
-```
-
-Run it:
-
-```sh
-./build/Sandbox
-```
-
-You should see a window titled **GameWindow** with a blueish background, created via OpenGL.
+For detailed build instructions and troubleshooting, see [docs/BUILD.md](docs/BUILD.md).
 
 ---
 
-## 🗂️ Project Structure
+## 📂 Project Structure
 
 ```
-GameWindow/
-│  CMakeLists.txt
-│  README.md
+UI_Engine/
+├── Engine/                 # Core engine library
+│   ├── Core/              # Application, Window, Input systems
+│   ├── Rendering/         # Renderer, Shaders, Buffers, Camera, Mesh
+│   └── Scene/             # ECS Scene, Entity, Components
 │
-├─ src/
-│   └─-main.cpp   # entry point
+├── Editor/                # ImGui-based editor application
+│   ├── Core/              # EditorLayer, ImGuiLayer
+│   └── main.cpp           # Editor entry point
 │
-├─ vendor/
-│   ├─ glfw/              # GLFW source
-│   ├─ glad/              # GLAD loader
-│   ├─ glm/               # GLM math library
-│   └─ stb/               # stb headers
+├── vendor/                # Third-party dependencies
+│   ├── glfw/             # Window and input (included)
+│   ├── glad/             # OpenGL loader (included)
+│   ├── glm/              # Math library (included)
+│   ├── imgui/            # UI framework (included)
+│   ├── entt/             # ECS library (included)
+│   └── stb/              # Image utilities (included)
 │
-└─ build/ (generated)
+├── docs/                 # Documentation
+└── CMakeLists.txt        # Root build configuration
 ```
 
 ---
 
-## 🧩 What You Get
+## 🎮 Editor Controls
 
-When you run the program, it:
+### Camera Movement (Viewport-Scoped)
 
-* Initializes GLFW
-* Creates a 1280×720 window
-* Loads OpenGL 4.6 via GLAD
-* Prints your GPU's OpenGL version
-* Enters a render loop with a clear color
+Camera controls only activate when:
+1. Mouse cursor is **inside the viewport** window
+2. **Right mouse button** is held down
 
-Ready for you to add:
+**Movement:**
+- `W` / `S` - Move forward/backward
+- `A` / `D` - Strafe left/right
+- `Q` / `E` - Move down/up
+- **Mouse movement** - Look around (while RMB held)
 
-* Shaders
-* VAOs/VBOs
-* Textures
-* 3D scenes
-* UI overlays
+The cursor automatically locks when camera is active and releases when you release the right mouse button.
 
 ---
 
-## 📝 Notes
+## 📚 Documentation
 
-* All dependencies are included in `vendor/` — no external installs required.
-* Paths are short and clean to avoid Windows object path issues.
-  
+### Architecture & Systems
+
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - High-level system design and module interactions
+- **[Rendering System](docs/RENDERING.md)** - Mesh system, shaders, framebuffers, and rendering pipeline
+- **[Scene & ECS](docs/SCENE_SYSTEM.md)** - Entity-Component-System using EnTT
+- **[Input System](docs/INPUT_SYSTEM.md)** - Viewport-scoped input and camera controls
+
+### Development
+
+- **[Build Guide](docs/BUILD.md)** - Detailed build instructions and troubleshooting
+
 ---
 
+## 🔧 Technology Stack
+
+| Component | Library | Version |
+|-----------|---------|---------|
+| Graphics API | OpenGL | 4.6 Core |
+| Window/Input | GLFW | 3.x |
+| GL Loader | GLAD | 4.6 |
+| Math | GLM | Latest |
+| UI Framework | ImGui | Docking branch |
+| ECS | EnTT | Single-header |
+| Build System | CMake | 3.20+ |
+
 ---
 
-### 👨‍💻 About the Developer
+## 🏗️ Current State
+
+This engine is under active development. Current features include:
+
+✅ Basic rendering pipeline with mesh abstraction  
+✅ ECS-based scene management  
+✅ ImGui editor with viewport rendering  
+✅ Viewport-scoped camera input system  
+✅ Transform component with matrix calculations  
+✅ Primitive mesh generation (cube, triangle, circle)  
+
+### Planned Features
+
+- [ ] Material system with PBR shading
+- [ ] Scene serialization (save/load)
+- [ ] Asset management system
+- [ ] Lighting system (point, directional, spot)
+- [ ] Physics integration
+- [ ] Audio system
+- [ ] Entity hierarchy (parent-child transforms)
+
+---
+
+## 👨‍💻 Developer
 
 **Aditya Tiwari**
+
 - 💼 LinkedIn: [Aditya Tiwari](https://www.linkedin.com/in/adii5423/)
-- 🐱 GitHub: [GitHub Profile](https://github.com/adi5423)
+- 🐱 GitHub: [adi5423](https://github.com/adi5423)
 - 📧 Email: adii54ti23@gmail.com
 - 🐦 Twitter: [@Adii5423](https://twitter.com/Adii5423)
-- 📧 Instagram: [@Adii5423.exe](https://instagram.com/Adii5423)
+- 📸 Instagram: [@Adii5423.exe](https://instagram.com/Adii5423)
 
 ---
 
+## 🤝 Contributing
 
-### Contributing
-If you would like to contribute to this project, feel free to fork the repository and submit a pull request. Any contributions, suggestions, or improvements are welcome!
+Contributions are welcome! Feel free to:
+- Report bugs by opening an issue
+- Suggest new features
+- Submit pull requests with improvements
 
+Please ensure your code follows the existing style and includes appropriate documentation.
+
+---
 
 ## 📄 License
 
-See [`MIT License`](LICENSE.txt).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
 
+---
+
+## 🙏 Acknowledgments
+
+Special thanks to the developers of:
+- [GLFW](https://www.glfw.org/) - Window and input handling
+- [Dear ImGui](https://github.com/ocornut/imgui) - Immediate mode GUI
+- [EnTT](https://github.com/skypjack/entt) - Fast and reliable ECS library
+- [GLM](https://github.com/g-truc/glm) - OpenGL Mathematics
+- [GLAD](https://glad.dav1d.de/) - OpenGL loader generator
