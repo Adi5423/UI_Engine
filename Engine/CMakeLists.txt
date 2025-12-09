@@ -3,16 +3,16 @@ set(ENGINE_SRC
     Core/GLFWWindow.cpp
 
     Rendering/Renderer.cpp
-    Rendering/Framebuffer.cpp
+    Rendering/Framebuffer/Framebuffer.cpp
 
     Scene/Scene.cpp
 )
 
 add_library(UICheckEngine STATIC ${ENGINE_SRC} 
-        "Rendering/Shader.cpp" 
-        "Rendering/Buffer.cpp" 
-        "Rendering/VertexArray.cpp" 
-        "Rendering/EditorCamera.cpp"
+        "Rendering/Shaders/Shader.cpp" 
+        "Rendering/Buffers/Buffer.cpp" 
+        "Rendering/Buffers/VertexArray.cpp" 
+        "Rendering/Camera/EditorCamera.cpp"
 
 )
 
