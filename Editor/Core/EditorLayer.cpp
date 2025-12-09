@@ -8,6 +8,7 @@
 #include <Scene/Scene.hpp>
 #include <Scene/Entity.hpp>
 #include <Scene/Components.hpp>
+#include <Scene/SceneAPI.hpp>
 
 
 EditorLayer::EditorLayer() = default;
@@ -20,60 +21,34 @@ void EditorLayer::OnAttach()
 
     // inspector pannels views.
     {
-        // Camera
-        Entity camera = m_ActiveScene->CreateEntity("Camera");
-        camera.AddComponent<TagComponent>("Camera");
-        camera.AddComponent<TransformComponent>();
+        // Scene setup via API
+        m_ActiveScene = std::make_unique<Scene>();
+        SceneAPI::CreateDefaultScene(*m_ActiveScene);
 
-        // Directional Light (no mesh yet)
-        Entity light = m_ActiveScene->CreateEntity("Directional Light");
-        light.AddComponent<TagComponent>("Directional Light");
-        light.AddComponent<TransformComponent>();
-
-        // Cube mesh entity
-        Entity cube = m_ActiveScene->CreateEntity("Cube");
-        cube.AddComponent<TagComponent>("Cube");
-        auto& cubeTransform = cube.AddComponent<TransformComponent>();
-        cubeTransform.Position = { 0.0f, 0.5f, 0.0f };
-        cube.AddComponent<MeshComponent>(Mesh::CreateCube());
-
-        // Triangle mesh entity
-        Entity tri = m_ActiveScene->CreateEntity("Triangle");
-        tri.AddComponent<TagComponent>("Triangle");
-        auto& triTransform = tri.AddComponent<TransformComponent>();
-        triTransform.Position = { -1.5f, 0.3f, 0.0f };
-        tri.AddComponent<MeshComponent>(Mesh::CreateTriangle());
-
-        // Circle mesh entity (disc)
-        Entity circle = m_ActiveScene->CreateEntity("Circle");
-        circle.AddComponent<TagComponent>("Circle");
-        auto& circleTransform = circle.AddComponent<TransformComponent>();
-        circleTransform.Position = { 1.5f, 0.0f, 0.0f };
-        circle.AddComponent<MeshComponent>(Mesh::CreateCircle(32));
     }
 
     // Framebuffer
     m_Framebuffer = std::make_unique<Framebuffer>(1280, 720);
 
-    // ---------- Simple cube geometry ----------
-    float vertices[] = {
-        // positions (a simple quad in front for now)
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f,
-    };
+    // // ---------- Simple cube geometry ----------
+    // float vertices[] = {
+    //     // positions (a simple quad in front for now)
+    //     -0.5f, -0.5f, -0.5f,
+    //      0.5f, -0.5f, -0.5f,
+    //      0.5f,  0.5f, -0.5f,
+    //     -0.5f,  0.5f, -0.5f,
+    // };
 
-    uint32_t indices[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
+    // uint32_t indices[] = {
+    //     0, 1, 2,
+    //     2, 3, 0
+    // };
 
-    m_CubeVA = std::make_unique<VertexArray>();
-    auto vb = new VertexBuffer(vertices, sizeof(vertices));
-    auto ib = new IndexBuffer(indices, 6);
-    m_CubeVA->AddVertexBuffer(vb);
-    m_CubeVA->SetIndexBuffer(ib);
+    // m_CubeVA = std::make_unique<VertexArray>();
+    // auto vb = new VertexBuffer(vertices, sizeof(vertices));
+    // auto ib = new IndexBuffer(indices, 6);
+    // m_CubeVA->AddVertexBuffer(vb);
+    // m_CubeVA->SetIndexBuffer(ib);
 
     // ---------- Simple shader ----------
     std::string vs = R"(
@@ -82,10 +57,11 @@ void EditorLayer::OnAttach()
 layout(location = 0) in vec3 aPos;
 
 uniform mat4 u_ViewProj;
+uniform mat4 u_Model;
 
 void main()
 {
-    gl_Position = u_ViewProj * vec4(aPos, 1.0);
+    gl_Position = u_ViewProj * u_Model * vec4(aPos, 1.0);
 }
 )";
 
@@ -113,7 +89,7 @@ void EditorLayer::OnDetach()
 {
     m_ActiveScene.reset();
     m_Framebuffer.reset();
-    m_CubeVA.reset();
+    // m_CubeVA.reset();
     m_Shader.reset();
 }
 
@@ -268,12 +244,24 @@ void EditorLayer::DrawViewportPanel()
     {
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+        ImVec2 windowPos   = ImGui::GetWindowPos();
+        ImVec2 cursorPos   = ImGui::GetCursorPos();     // position inside window
+        ImVec2 globalImage = { windowPos.x + cursorPos.x,
+                               windowPos.y + cursorPos.y };
+        
         ViewportInput::SetViewportBounds(
-            ImGui::GetWindowPos().x,
-            ImGui::GetWindowPos().y,
+            globalImage.x,
+            globalImage.y,
             m_ViewportSize.x,
             m_ViewportSize.y
         );
+        ImGui::Text("VP Bounds: X=%f Y=%f  W=%f H=%f",
+            globalImage.x,
+            globalImage.y,
+            m_ViewportSize.x,
+            m_ViewportSize.y
+        );
+
 
         // if (ViewportInput::IsCameraActive())
         // {
@@ -299,14 +287,26 @@ void EditorLayer::DrawViewportPanel()
         m_Framebuffer->Bind();
         Renderer::Clear({ 0.12f, 0.12f, 0.14f, 1.0f });
 
-        m_Shader->Bind();
-        m_Shader->SetMat4("u_ViewProj", m_EditorCamera.GetViewProjection());
+        // Begin scene with current camera
+        Renderer::BeginScene(m_EditorCamera.GetViewProjection());
 
-        m_CubeVA->Bind();
-        glDrawElements(GL_TRIANGLES,
-            m_CubeVA->GetIndexBuffer()->GetCount(),
-            GL_UNSIGNED_INT,
-            nullptr);
+        auto& reg = m_ActiveScene->Reg();
+        auto view = reg.view<TransformComponent, MeshComponent>();
+
+        for (auto entityHandle : view)
+        {
+            auto& tc = view.get<TransformComponent>(entityHandle);
+            auto& mc = view.get<MeshComponent>(entityHandle);
+
+            if (!mc.MeshHandle)
+                continue;
+
+            Renderer::Submit(mc.MeshHandle,
+                             tc.GetMatrix(),
+                             *m_Shader);
+        }
+
+        Renderer::EndScene();
 
         m_Framebuffer->Unbind();
         // -------------------------------

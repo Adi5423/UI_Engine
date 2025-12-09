@@ -34,8 +34,8 @@ private:
     std::unique_ptr<Framebuffer> m_Framebuffer;
     glm::vec2                    m_ViewportSize = { 1280.0f, 720.0f };
 
-    std::unique_ptr<VertexArray> m_CubeVA;
     std::unique_ptr<Shader>      m_Shader;
+    
     EditorCamera                 m_EditorCamera;
 
     // Internal helpers
