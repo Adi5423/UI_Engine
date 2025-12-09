@@ -8,11 +8,11 @@
 #include <Scene/Scene.hpp>
 #include <Scene/Entity.hpp>
 #include <Scene/Components.hpp>
-#include <Rendering/Framebuffer.hpp>
+#include <Rendering/Framebuffer/Framebuffer.hpp>
 #include <Rendering/Renderer.hpp>
-#include <Rendering/VertexArray.hpp>
-#include <Rendering/Shader.hpp>
-#include <Rendering/EditorCamera.hpp>
+#include <Rendering/Buffers/VertexArray.hpp>
+#include <Rendering/Shaders/Shader.hpp>
+#include <Rendering/Camera/EditorCamera.hpp>
 
 class EditorLayer
 {
