@@ -4,6 +4,8 @@ set(ENGINE_SRC
     Core/Input/Input.cpp
     Core/Input/ViewportInput.cpp
 
+    Rendering/Mesh/Mesh.cpp
+
     Rendering/Renderer.cpp
     Rendering/Framebuffer/Framebuffer.cpp
 
@@ -15,7 +17,7 @@ add_library(UICheckEngine STATIC ${ENGINE_SRC}
         "Rendering/Buffers/Buffer.cpp" 
         "Rendering/Buffers/VertexArray.cpp" 
         "Rendering/Camera/EditorCamera.cpp"
-
+        
 )
 
 target_include_directories(UICheckEngine PUBLIC
