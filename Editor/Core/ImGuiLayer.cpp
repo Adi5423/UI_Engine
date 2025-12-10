@@ -49,20 +49,20 @@ void ImGuiLayer::OnAttach(GLFWwindow* window)
         //style.Colors[ImGuiCol_WindowBg].w = 1.0f;     //it breaks window Z-order (Creates separate OS windows without proper flags -> going behind main window)
     }
 
-    style.WindowRounding = 10.0f;
-    style.FrameRounding = 10.0f;
-    style.TabRounding = 10.0f;
+    style.WindowRounding = 8.0f;
+    style.FrameRounding = 8.0f;
+    style.TabRounding = 3.0f;
 
-    style.ScrollbarRounding = 10.0f;
-    style.GrabRounding = 10.0f;
+    style.ScrollbarRounding = 3.0f;
+    style.GrabRounding = 2.0f;
 
-    style.WindowBorderSize = 5.0f;
-    style.FrameBorderSize = 5.0f;
+    style.WindowBorderSize = 1.0f;
+    style.FrameBorderSize = 2.8f;
 
     // Spacing
     style.WindowPadding = ImVec2(8, 8);
-    style.FramePadding = ImVec2(8, 8);
-    style.ItemSpacing = ImVec2(8, 8);
+    style.FramePadding = ImVec2(6, 4);
+    style.ItemSpacing = ImVec2(8, 6);
 
     // Colors (tuned for engine/editor vibe)
     ImVec4 bg = ImVec4(0.11f, 0.11f, 0.12f, 1.0f);
