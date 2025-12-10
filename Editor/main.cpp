@@ -107,6 +107,18 @@ int main()
                 ImGui::EndMenuBar();
             }
 
+            if (ImGui::BeginMenuBar())
+            {
+                if (ImGui::BeginMenu("Setting"))
+                {
+                    if (ImGui::MenuItem("Theme"))
+                        running = false;
+
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenuBar();
+            }
+
             ImGui::End();
         }
         // -----------------
