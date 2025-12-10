@@ -1,6 +1,7 @@
 ﻿#include "EditorLayer.hpp"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <glad/glad.h>      // for glDrawElements etc.
 #include <glm/glm.hpp>
 
@@ -9,6 +10,7 @@
 #include <Scene/Entity.hpp>
 #include <Scene/Components.hpp>
 #include <Scene/SceneAPI.hpp>
+#include <Core/ThemeSettings.hpp>
 
 
 EditorLayer::EditorLayer() = default;
@@ -94,11 +96,76 @@ void EditorLayer::OnDetach()
     m_Shader.reset();
 }
 
+void EditorLayer::DrawThemePanel()
+{
+    if (!ImGui::Begin("Theme Settings"))
+    {
+        ImGui::End();
+        return;
+    }
+
+    ImGuiStyle& s = ImGui::GetStyle();
+
+    ImGui::Text("Use Default Theme");
+    ImGui::SameLine();
+    if (ImGui::Checkbox("##UseDefaultTheme", &ThemeSettings::UseDefaultTheme))
+    {
+        if (ThemeSettings::UseDefaultTheme)
+            ImGui::StyleColorsDark();       // back to default UI
+        else
+            ThemeSettings::ApplyThemeFromJSON();
+    }
+
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // -------------- Rounding --------------
+    ImGui::SliderFloat("Window Rounding", &s.WindowRounding, 0.f, 12.f);
+    ImGui::SliderFloat("Frame Rounding",  &s.FrameRounding,  0.f, 12.f);
+    ImGui::SliderFloat("Tab Rounding",    &s.TabRounding,    0.f, 12.f);
+
+    ImGui::Spacing();
+    ImGui::Separator();
+
+    // -------------- Padding --------------
+    ImGui::SliderFloat2("Window Padding", (float*)&s.WindowPadding, 0.f, 30.f);
+    ImGui::SliderFloat2("Frame Padding",  (float*)&s.FramePadding,  0.f, 30.f);
+    ImGui::SliderFloat2("Item Spacing",   (float*)&s.ItemSpacing,   0.f, 30.f);
+
+    ImGui::Spacing();
+    ImGui::Separator();
+
+    // -------------- Colors --------------
+    ImGui::Text("Colors");
+    for (int i = 0; i < ImGuiCol_COUNT; i++)
+    {
+        // Use GetStyleColorName(i) to get human-readable key (available in modern ImGui)
+        const char* name = ImGui::GetStyleColorName(i);
+        if (!name) name = "Unknown";
+    
+        // ColorEdit4 so alpha is editable too
+        ImGui::ColorEdit4(name, (float*)&s.Colors[i]);
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+
+    // -------------- SAVE --------------
+    if (ImGui::Button("Save Theme to JSON"))
+    {
+        ThemeSettings::SaveThemeToJSON();
+    }
+
+    ImGui::End();
+}
+
+
 void EditorLayer::OnImGuiRender()
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
+    DrawThemePanel();
     DrawHierarchyPanel();
     DrawInspectorPanel();
     DrawContentBrowserPanel();
