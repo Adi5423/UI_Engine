@@ -7,6 +7,7 @@
 
 #include "Core/Input/Input.hpp"
 #include "Core/Input/ViewportInput.hpp"
+#include "Core/ThemeSettings.hpp"
 
 // Including inside Editor imgui.h
 #include <imgui.h>
@@ -14,7 +15,8 @@
 #include <backends/imgui_impl_opengl3.h>
 
 
-int main()
+int main(
+)
 {
     Application app;
 
@@ -111,8 +113,12 @@ int main()
             {
                 if (ImGui::BeginMenu("Setting"))
                 {
+                    static bool openTheme = false;
                     if (ImGui::MenuItem("Theme"))
-                        running = false;
+                        openTheme = true;
+
+                    if (openTheme)
+                        ImGui::SetWindowFocus("Theme Settings");
 
                     ImGui::EndMenu();
                 }

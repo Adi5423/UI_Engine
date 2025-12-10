@@ -1,4 +1,5 @@
 ﻿#include "ImGuiLayer.hpp"
+#include "ThemeSettings.hpp"
 
 // ImGui core
 #include <imgui.h>
@@ -59,7 +60,7 @@ void ImGuiLayer::OnAttach(GLFWwindow* window)
     style.WindowBorderSize = 1.0f;
     style.FrameBorderSize = 2.8f;
 
-    // Spacing
+    // Spacingl̥
     style.WindowPadding = ImVec2(8, 8);
     style.FramePadding = ImVec2(6, 4);
     style.ItemSpacing = ImVec2(8, 6);
@@ -123,6 +124,14 @@ void ImGuiLayer::OnAttach(GLFWwindow* window)
     style.Colors[ImGuiCol_DockingEmptyBg] = bgDark;
     style.Colors[ImGuiCol_DockingPreview] = accentSoft;
 
+    // Load theme from settings/theme/params/params.json
+    ThemeSettings::Init();
+
+    // If not default, override style values
+    if (!ThemeSettings::UseDefaultTheme)
+    {
+        ThemeSettings::ApplyThemeFromJSON();
+    }
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);

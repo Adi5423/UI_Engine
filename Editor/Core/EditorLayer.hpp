@@ -23,6 +23,7 @@ public:
 
     void OnAttach();
     void OnDetach();
+    void DrawThemePanel();
     void OnImGuiRender(); // Called every frame to draw panels
 
 private:

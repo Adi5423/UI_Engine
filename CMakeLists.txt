@@ -34,6 +34,7 @@ include_directories(
     vendor/glm
     vendor/stb
     vendor/entt/single_include
+    vendor/json
 )
 
 # ---------- engine & editor ------------
