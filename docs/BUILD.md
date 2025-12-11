@@ -461,4 +461,4 @@ If you encounter issues not covered here:
    - Full error output
    - Steps to reproduce
 
-Happy building! 🚀
+Happy building!

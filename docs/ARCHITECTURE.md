@@ -240,6 +240,74 @@ Key config flags:
 - `ImGuiConfigFlags_DockingEnable` - Enable docking
 - `ImGuiConfigFlags_ViewportsEnable` - Multi-viewport support
 - `ImGuiConfigFlags_NoMouseCursorChange` - Let viewport input manage cursor
+- `ImGuiConfigFlags_DpiEnableScaleFonts` - DPI-aware font scaling
+- `ImGuiConfigFlags_DpiEnableScaleViewports` - DPI-aware viewport scaling
+
+**Default Engine Style:**
+- Custom dark theme defined in `OnAttach()`
+- Stored in `ImGuiLayer::DefaultEngineStyle` before applying user themes
+- Enables theme restoration when "Use Default Theme" is selected
+
+---
+
+### Theme System
+
+The engine includes a complete runtime theme customization system.
+
+#### ThemeSettings (`Core/ThemeSettings.hpp/cpp`)
+
+Static class managing theme loading and persistence:
+
+```cpp
+class ThemeSettings {
+public:
+    static void Init();              // Load at engine startup
+    static void ApplyThemeFromJSON(); // Apply JSON overrides to ImGui style
+    static void SaveThemeToJSON();   // Write current style to JSON file
+    static bool UseDefaultTheme;     // Flag controlled by UI
+};
+```
+
+**Initialization Flow:**
+1. `ImGuiLayer::OnAttach()` sets up default engine theme
+2. Stores `DefaultEngineStyle = ImGui::GetStyle()`
+3. Calls `ThemeSettings::Init()` to load JSON file
+4. If not using default, calls `ThemeSettings::ApplyThemeFromJSON()`
+
+**JSON File Location:** `settings/theme/params.json`
+
+**JSON Structure:**
+```json
+{
+    "UseDefaultTheme": false,
+    "WindowRounding": 8.0,
+    "FrameRounding": 8.0,
+    "TabRounding": 3.0,
+    "WindowPadding": [8, 8],
+    "FramePadding": [6, 4],
+    "ItemSpacing": [8, 6],
+    "Colors": {
+        "WindowBg": [0.11, 0.11, 0.12, 1.0],
+        "FrameBg": [0.16, 0.16, 0.18, 1.0],
+        ...
+    }
+}
+```
+
+**Key Features:**
+- Automatic directory creation (`settings/theme/`)
+- Safe JSON parsing with error handling
+- Support for RGB and RGBA color arrays
+- All ImGui style colors supported via `ImGui::GetStyleColorName()`
+
+#### Default Theme Restoration
+
+When "Use Default Theme" is selected in the Theme Panel:
+```cpp
+ImGui::GetStyle() = ImGuiLayer::DefaultEngineStyle;
+```
+
+This restores the exact engine-defined theme, not ImGui's built-in dark theme.
 
 ### EditorLayer (`Core/EditorLayer.hpp/cpp`)
 
@@ -261,11 +329,35 @@ Main editor interface layer:
    - `Renderer::EndScene()`
 4. Unbind framebuffer
 
-**ImGui Interface:**
-- **Viewport Panel**: Displays framebuffer texture, handles viewport resizing
-- **Scene Hierarchy Panel**: Lists all entities (planned)
-- **Properties Panel**: Shows selected entity components (planned)
-- **Content Browser**: Asset management (planned)
+**ImGui Interface Panels:**
+
+1. **Viewport Panel** (`DrawViewportPanel()`)
+   - Displays framebuffer color attachment texture
+   - Handles viewport resizing with framebuffer recreation
+   - Updates `ViewportInput` bounds for camera controls
+   - Supports ImGui window flags for no-scrolling
+
+2. **Hierarchy Panel** (`DrawHierarchyPanel()`)
+   - Lists all entities in active scene using `registry.view<TagComponent>()`
+   - Displays entity names from TagComponent
+   - Click to select entity (sets `m_SelectedEntity`)
+   - Visual highlight for selected entity
+
+3. **Inspector Panel** (`DrawInspectorPanel()`)
+   - Shows components of `m_SelectedEntity`
+   - Editable fields for:
+     - **TagComponent**: Entity name text input
+     - **TransformComponent**: Position, Rotation, Scale (DragFloat3)
+   - Component-based sections with collapsible headers
+
+4. **Content Browser Panel** (`DrawContentBrowserPanel()`)
+   - Placeholder for future asset management
+   - Will support file browsing and asset import
+
+5. **Theme Panel** (`DrawThemePanel()`)
+   - Toggled via `m_ShowThemePanel` flag
+   - Access from Settings menu
+   - See Theme System section below
 
 ---
 
