@@ -3,6 +3,7 @@ set(EDITOR_SRC
     Core/ImGuiLayer.cpp
     Core/EditorLayer.cpp
     Core/ThemeSettings.cpp
+    Core/ImGuiLayer.hpp
 )
 
 add_executable(UICheckEditor ${EDITOR_SRC})

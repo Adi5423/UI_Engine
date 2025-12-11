@@ -21,8 +21,11 @@ public:
     ~EditorLayer();
     EditorCamera& GetCamera() { return m_EditorCamera; } // camera and input system
 
+    bool m_ShowThemePanel = false;
+
     void OnAttach();
     void OnDetach();
+    void ToggleThemePanel() { m_ShowThemePanel = !m_ShowThemePanel; }
     void DrawThemePanel();
     void OnImGuiRender(); // Called every frame to draw panels
 
