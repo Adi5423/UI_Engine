@@ -12,6 +12,8 @@
 
 ImGuiLayer::ImGuiLayer() {}
 ImGuiLayer::~ImGuiLayer() {}
+// Defining static variable
+ImGuiStyle ImGuiLayer::DefaultEngineStyle;
 
 void ImGuiLayer::OnAttach(GLFWwindow* window)
 {
@@ -41,7 +43,7 @@ void ImGuiLayer::OnAttach(GLFWwindow* window)
 
     // Dark Theme
     // ----- Style: Hazel + Minimal Flat mix -----
-    ImGui::StyleColorsDark();
+    ImGui::StyleColorsDark();  // base
     ImGuiStyle& style = ImGui::GetStyle();
 
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -124,14 +126,17 @@ void ImGuiLayer::OnAttach(GLFWwindow* window)
     style.Colors[ImGuiCol_DockingEmptyBg] = bgDark;
     style.Colors[ImGuiCol_DockingPreview] = accentSoft;
 
-    // Load theme from settings/theme/params/params.json
-    ThemeSettings::Init();
+    // -------------------------------------------------------------
+    // STORE ENGINE DEFAULTS BEFORE LOADING CUSTOM THEMES
+    // -------------------------------------------------------------
+    DefaultEngineStyle = style;
 
-    // If not default, override style values
+    // Load theme from settings/theme/params/params.json
+    // ---- Load JSON theme (if exists) ----
+    ThemeSettings::Init();
     if (!ThemeSettings::UseDefaultTheme)
-    {
         ThemeSettings::ApplyThemeFromJSON();
-    }
+
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);

@@ -1,10 +1,7 @@
 #pragma once
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <string>
-#include "ThemeSettings.hpp"
-
+#include <imgui.h>
 
 class ImGuiLayer
 {
@@ -17,6 +14,8 @@ public:
 
     void Begin();
     void End();
+
+    static ImGuiStyle DefaultEngineStyle;  
 
 private:
     bool m_Enabled = false;

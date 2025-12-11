@@ -90,9 +90,9 @@ int main(
                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                 ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+            // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::Begin("##DockspaceRoot", &dockspaceOpen, windowFlags);
-            ImGui::PopStyleVar();
+            // ImGui::PopStyleVar();
 
             ImGuiID dockspaceID = ImGui::GetID("MainDockspace");
             ImGui::DockSpace(dockspaceID, ImVec2(0, 0), dockFlags);
@@ -111,20 +111,15 @@ int main(
 
             if (ImGui::BeginMenuBar())
             {
-                if (ImGui::BeginMenu("Setting"))
+                if (ImGui::BeginMenu("Settings"))
                 {
-                    static bool openTheme = false;
                     if (ImGui::MenuItem("Theme"))
-                        openTheme = true;
-
-                    if (openTheme)
-                        ImGui::SetWindowFocus("Theme Settings");
-
+                        editor.ToggleThemePanel();   // NEW (create function)
+                
                     ImGui::EndMenu();
                 }
                 ImGui::EndMenuBar();
             }
-
             ImGui::End();
         }
         // -----------------

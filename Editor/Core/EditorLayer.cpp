@@ -11,6 +11,7 @@
 #include <Scene/Components.hpp>
 #include <Scene/SceneAPI.hpp>
 #include <Core/ThemeSettings.hpp>
+#include <Core/ImGuiLayer.hpp>
 
 
 EditorLayer::EditorLayer() = default;
@@ -98,60 +99,72 @@ void EditorLayer::OnDetach()
 
 void EditorLayer::DrawThemePanel()
 {
-    if (!ImGui::Begin("Theme Settings"))
+    if (!m_ShowThemePanel)
+        return;
+
+    bool open = true;
+    if (!ImGui::Begin("Theme Settings", &open))
     {
+        ImGui::End();
+        if (!open) m_ShowThemePanel = false;
+        return;
+    }
+
+    if (!open)
+    {
+        m_ShowThemePanel = false;
         ImGui::End();
         return;
     }
 
     ImGuiStyle& s = ImGui::GetStyle();
 
-    ImGui::Text("Use Default Theme");
-    ImGui::SameLine();
-    if (ImGui::Checkbox("##UseDefaultTheme", &ThemeSettings::UseDefaultTheme))
+    // ---------------- TOGGLE DEFAULT THEME ----------------
+    bool useDefault = ThemeSettings::UseDefaultTheme;
+    if (ImGui::Checkbox("Use Default Theme", &useDefault))
     {
-        if (ThemeSettings::UseDefaultTheme)
-            ImGui::StyleColorsDark();       // back to default UI
+        ThemeSettings::UseDefaultTheme = useDefault;
+
+        if (useDefault)
+        {
+            // Restore engine built-in style (not imgui default)
+            s = ImGuiLayer::DefaultEngineStyle;
+        }
         else
+        {
             ThemeSettings::ApplyThemeFromJSON();
+        }
     }
 
     ImGui::Separator();
     ImGui::Spacing();
 
-    // -------------- Rounding --------------
-    ImGui::SliderFloat("Window Rounding", &s.WindowRounding, 0.f, 12.f);
-    ImGui::SliderFloat("Frame Rounding",  &s.FrameRounding,  0.f, 12.f);
-    ImGui::SliderFloat("Tab Rounding",    &s.TabRounding,    0.f, 12.f);
+    // ---------------- Rounding ----------------
+    ImGui::SliderFloat("Window Rounding", &s.WindowRounding, 0.f, 20.f);
+    ImGui::SliderFloat("Frame Rounding",  &s.FrameRounding,  0.f, 20.f);
+    ImGui::SliderFloat("Tab Rounding",    &s.TabRounding,    0.f, 20.f);
 
-    ImGui::Spacing();
-    ImGui::Separator();
+    ImGui::Spacing(); ImGui::Separator();
 
-    // -------------- Padding --------------
+    // ---------------- Padding ----------------
     ImGui::SliderFloat2("Window Padding", (float*)&s.WindowPadding, 0.f, 30.f);
     ImGui::SliderFloat2("Frame Padding",  (float*)&s.FramePadding,  0.f, 30.f);
     ImGui::SliderFloat2("Item Spacing",   (float*)&s.ItemSpacing,   0.f, 30.f);
 
-    ImGui::Spacing();
-    ImGui::Separator();
+    ImGui::Spacing(); ImGui::Separator();
 
-    // -------------- Colors --------------
+    // ---------------- Colors ----------------
     ImGui::Text("Colors");
     for (int i = 0; i < ImGuiCol_COUNT; i++)
     {
-        // Use GetStyleColorName(i) to get human-readable key (available in modern ImGui)
         const char* name = ImGui::GetStyleColorName(i);
-        if (!name) name = "Unknown";
-    
-        // ColorEdit4 so alpha is editable too
         ImGui::ColorEdit4(name, (float*)&s.Colors[i]);
     }
 
-    ImGui::Spacing();
-    ImGui::Separator();
+    ImGui::Spacing(); ImGui::Separator();
 
-    // -------------- SAVE --------------
-    if (ImGui::Button("Save Theme to JSON"))
+    // ---------------- SAVE ----------------
+    if (ImGui::Button("Save Theme"))
     {
         ThemeSettings::SaveThemeToJSON();
     }
@@ -160,10 +173,12 @@ void EditorLayer::DrawThemePanel()
 }
 
 
+
 void EditorLayer::OnImGuiRender()
 {
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+    // overriding user changes while editing in themes panel.
+    // ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+    // ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
     DrawThemePanel();
     DrawHierarchyPanel();
@@ -171,7 +186,7 @@ void EditorLayer::OnImGuiRender()
     DrawContentBrowserPanel();
     DrawViewportPanel();
 
-    ImGui::PopStyleVar(2);
+    // ImGui::PopStyleVar(2);
 }
 
 // ------------------------- PANELS -------------------------

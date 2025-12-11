@@ -38,9 +38,9 @@ namespace SceneAPI
         CreateCamera(scene);
 
         // For now: three default meshes (you can change this to only one "Plane" later)
-        CreateMeshEntity(scene, "Cube",     Mesh::CreateCube(),     { 0.0f, 0.5f, 0.0f });
-        CreateMeshEntity(scene, "Cube2",    Mesh::CreateCube(),     { 1.5f, 0.5f, 0.0f });
-        CreateMeshEntity(scene, "Cube3",    Mesh::CreateCube(),     { 3.0f, -0.5f, 0.0f });
+        CreateMeshEntity(scene, "Cube",     Mesh::CreateCube(),     { -0.4f, 0.5f, 0.0f });
+        CreateMeshEntity(scene, "Cube2",    Mesh::CreateCube(),     { 2.0f, 0.5f, 0.0f });
+        CreateMeshEntity(scene, "Cube3",    Mesh::CreateCube(),     { 0.8f, -1.2f, 0.0f });
         // CreateMeshEntity(scene, "Triangle", Mesh::CreateTriangle3D(), { -1.5f, 0.3f, 0.0f });
         // CreateMeshEntity(scene, "Circle",   Mesh::CreateCircle(32), { 1.5f, 0.0f, 0.0f });
     }
