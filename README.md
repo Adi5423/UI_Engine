@@ -8,6 +8,7 @@ A modern 3D game engine built with OpenGL, featuring an Entity-Component-System 
 
 - **Modern OpenGL 4.6 Core Profile** rendering
 - **Entity-Component-System** architecture using [EnTT](https://github.com/skypjack/entt)
+- **Professional Application Entry Point** & Lifecycle System
 - **ImGui-based Editor** with dockable viewports and scene hierarchy
 - **Viewport-Scoped Input System** for precise camera control
 - **3D Mesh Rendering** with primitive generation (cube, triangle, circle)
@@ -53,13 +54,13 @@ For detailed build instructions and troubleshooting, see [docs/BUILD.md](docs/BU
 ```
 UI_Engine/
 ├── Engine/                 # Core engine library
-│   ├── Core/              # Application, Window, Input systems
+│   ├── Core/              # Application, EntryPoint, Window, Input
 │   ├── Rendering/         # Renderer, Shaders, Buffers, Camera, Mesh
 │   └── Scene/             # ECS Scene, Entity, Components
 │
 ├── Editor/                # ImGui-based editor application
-│   ├── Core/              # EditorLayer, ImGuiLayer, ThemeSettings
-│   └── main.cpp           # Editor entry point
+│   ├── Core/              # EditorLayer, ImGuiLayer, EditorApplication
+│   └── main.cpp           # Editor entry point (CreateApplication)
 │
 ├── vendor/                # Third-party dependencies
 │   ├── glfw/             # Window and input (included)
