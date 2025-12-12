@@ -43,6 +43,8 @@ private:
     std::unique_ptr<Shader>      m_Shader;
     
     EditorCamera                 m_EditorCamera;
+    
+    int                          m_GizmoType = 0; // ImGuizmo::OPERATION
 
     // Internal helpers
     void DrawHierarchyPanel();

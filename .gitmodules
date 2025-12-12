@@ -14,3 +14,6 @@
 [submodule "vendor/entt"]
 	path = vendor/entt
 	url = https://github.com/skypjack/entt.git
+; [submodule "vendor/ImGuizmo"]
+; 	path = vendor/ImGuizmo
+; 	url = https://github.com/CedricGuillemet/ImGuizmo.git

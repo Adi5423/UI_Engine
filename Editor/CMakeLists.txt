@@ -23,4 +23,5 @@ target_include_directories(UICheckEditor PRIVATE
 target_link_libraries(UICheckEditor PRIVATE
     UICheckEngine
     imgui
+    ImGuizmo
 )

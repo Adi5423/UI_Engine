@@ -1,0 +1,58 @@
+[  3%] Built target glad
+[ 42%] Built target glfw
+[ 56%] Built target imgui
+[ 59%] Built target ImGuizmo
+[ 89%] Built target UICheckEngine
+[ 91%] Building CXX object Editor/CMakeFiles/UICheckEditor.dir/Core/EditorLayer.cpp.obj
+In file included from D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Editor\Core\EditorLayer.cpp:2:
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:124:19: error: variable or field 'SetDrawlist' declared void
+  124 |    IMGUI_API void SetDrawlist(ImDrawList* drawlist = nullptr);
+      |                   ^~~~~~~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:124:31: error: 'ImDrawList' was not declared in this scope
+  124 |    IMGUI_API void SetDrawlist(ImDrawList* drawlist = nullptr);
+      |                               ^~~~~~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:124:43: error: 'drawlist' was not declared in this scope
+  124 |    IMGUI_API void SetDrawlist(ImDrawList* drawlist = nullptr);
+      |                                           ^~~~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:133:19: error: variable or field 'SetImGuiContext' declared void
+  133 |    IMGUI_API void SetImGuiContext(ImGuiContext* ctx);
+      |                   ^~~~~~~~~~~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:133:35: error: 'ImGuiContext' was not declared in this scope
+  133 |    IMGUI_API void SetImGuiContext(ImGuiContext* ctx);
+      |                                   ^~~~~~~~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:133:49: error: 'ctx' was not declared in this scope
+  133 |    IMGUI_API void SetImGuiContext(ImGuiContext* ctx);
+      |                                                 ^~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:221:61: error: 'ImVec2' has not been declared
+  221 |    IMGUI_API void ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor);
+      |                                                             ^~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:221:78: error: 'ImVec2' has not been declared
+  221 |    IMGUI_API void ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor);
+      |                                                                              ^~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:221:91: error: 'ImU32' has not been declared
+  221 |    IMGUI_API void ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor);
+      |                                                                                           ^~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:224:133: error: 'ImVec2' has not been declared
+  224 |    IMGUI_API void ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor);
+      |                                                                                                                                     ^~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:224:150: error: 'ImVec2' has not been declared
+  224 |    IMGUI_API void ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor);
+      |                                                                                                                                                      ^~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:224:163: error: 'ImU32' has not been declared
+  224 |    IMGUI_API void ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor);
+      |                                                                                                                                                                   ^~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:247:19: error: 'ImGuiID' does not name a type
+  247 |         IMGUI_API ImGuiID       GetID(const char* str_id);                                      // calculate unique ID (hash of whole ID stack + given parameter). e.g. if you want to query into ImGuiStorage yourself
+      |                   ^~~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:248:19: error: 'ImGuiID' does not name a type
+  248 |         IMGUI_API ImGuiID       GetID(const char* str_id_begin, const char* str_id_end);
+      |                   ^~~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:249:19: error: 'ImGuiID' does not name a type
+  249 |         IMGUI_API ImGuiID       GetID(const void* ptr_id);
+      |                   ^~~~~~~
+D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/vendor/ImGuizmo/ImGuizmo.h:302:7: error: 'ImVec4' does not name a type
+  302 |       ImVec4 Colors[COLOR::COUNT];
+      |       ^~~~~~
+mingw32-make[2]: *** [Editor\CMakeFiles\UICheckEditor.dir\build.make:124: Editor/CMakeFiles/UICheckEditor.dir/Core/EditorLayer.cpp.obj] Error 1
+mingw32-make[1]: *** [CMakeFiles\Makefile2:413: Editor/CMakeFiles/UICheckEditor.dir/all] Error 2
+mingw32-make: *** [Makefile:135: all] Error 2
