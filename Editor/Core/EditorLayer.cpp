@@ -559,9 +559,10 @@ void EditorLayer::DrawViewportPanel()
         // Mouse Picking
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && 
             ImGui::IsWindowHovered() && 
-            !ImGuizmo::IsOver() && 
-            !ImGui::GetIO().WantCaptureKeyboard)
+            (!m_SelectedEntity || !ImGuizmo::IsOver())) // Only check Over if we have selection (gizmo active)
         {
+            ImGui::SetWindowFocus(); // Ensure shortcuts work
+
             ImVec2 mousePos = ImGui::GetMousePos();
             ImVec2 vpPos = globalImage;
             
