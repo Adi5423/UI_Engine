@@ -164,7 +164,7 @@ void EditorLayer::OnUpdate(float deltaTime)
     }
 
     // Gizmo Shortcuts
-    if (!ImGui::GetIO().WantTextInput)
+    if (!ImGui::GetIO().WantTextInput && !ViewportInput::IsCameraActive())
     {
         if (Input::IsKeyPressed(GLFW_KEY_Q)) m_GizmoType = -1;
         if (Input::IsKeyPressed(GLFW_KEY_W)) m_GizmoType = ImGuizmo::TRANSLATE;
