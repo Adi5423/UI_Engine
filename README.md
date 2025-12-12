@@ -138,6 +138,7 @@ The cursor automatically locks when camera is active and releases when you relea
 ### Architecture and Systems
 
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - High-level system design and module interactions
+- **[Features List](docs/FEATURES.md)** - Comprehensive list of engine capabilities
 - **[Rendering System](docs/RENDERING.md)** - Mesh system, shaders, framebuffers, and rendering pipeline
 - **[Scene and ECS](docs/SCENE_SYSTEM.md)** - Entity-Component-System using EnTT
 - **[Input System](docs/INPUT_SYSTEM.md)** - Viewport-scoped input and camera controls
