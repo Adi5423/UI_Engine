@@ -6,13 +6,20 @@ This document provides a technical overview of the UI Engine's architecture, inc
 
 ## System Overview
 
-The UI Engine follows a modular architecture with clear separation between:
+The UI Engine follows a modular, professional game engine architecture with clear separation between:
 - **Engine Module**: Core runtime library providing application framework, rendering, and scene management
-- **Editor Module**: ImGui-based editor application for development and content creation
+- **Editor Module**: ImGui-based editor application built on top of the engine
 
 ```
 ┌─────────────────────────────────────────────┐
+│          Editor Entry Point                 │
+│      (Defines CreateApplication)            │
+└─────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────┐
 │          Editor Application                 │
+│      (Inherits from Application)            │
 │  ┌──────────────┐  ┌──────────────────┐    │
 │  │ ImGuiLayer   │  │  EditorLayer     │    │
 │  │              │  │  - Viewport      │    │
@@ -25,7 +32,7 @@ The UI Engine follows a modular architecture with clear separation between:
 │           Engine Library                     │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
 │  │   Core   │  │ Rendering│  │  Scene   │  │
-│  │          │  │          │  │  (ECS)   │  │
+│  │(EntryPoint) │          │  │  (ECS)   │  │
 │  └──────────┘  └──────────┘  └──────────┘  │
 └─────────────────────────────────────────────┘
                     │
@@ -46,10 +53,16 @@ The engine is compiled as a static library (`UICheckEngine`) that provides all c
 
 **Location:** `Engine/Core/`
 
+#### Entry Point (`EntryPoint.hpp`)
+- Contains the engine's `main()` function
+- Handles bootstrap, argument parsing, and shutdown
+- Calls the client-defined `CreateApplication()` function
+
 #### Application (`Application.hpp/cpp`)
-- Main application lifecycle management
-- Window creation and event loop
-- Initialization and shutdown
+- **Base Class** for all applications
+- Virtual lifecycle methods: `OnInit()`, `OnUpdate(dt)`, `OnShutdown()`
+- Manages the main run loop and window
+- Singleton access via `Application::Get()`
 
 #### Window (`Window.hpp`, `GLFWWindow.hpp/cpp`)
 - Platform-agnostic window interface
@@ -196,35 +209,43 @@ The editor is a standalone executable (`UICheckEditor`) that uses the engine lib
 
 ### Editor Entry Point (`main.cpp`)
 
-Main loop structure:
+The editor uses the engine's entry point system. `main()` is defined in the engine, which calls the client's `CreateApplication` factory function.
+
 ```cpp
-Application app;
-GLFWwindow* window = app.GetWindow()->GetNativeWindow();
+#include "Core/EditorApplication.hpp"
+#include <Core/EntryPoint.hpp> // Defines main()
 
-Input::Init(window);
-ViewportInput::Init(window);
+Application* CreateApplication(ApplicationCommandLineArgs args)
+{
+    ApplicationSpecification spec;
+    spec.Name = "Groove Engine Editor";
+    // ...
+    return new EditorApplication(spec);
+}
+```
 
-ImGuiLayer imgui;
-EditorLayer editor;
+### Editor Application (`Core/EditorApplication.hpp/cpp`)
 
-imgui.OnAttach(window);
-editor.OnAttach();
+Inherits from `Application` and manages the editor's lifecycle:
 
-while (running) {
-    // Viewport-scoped camera input
-    ViewportInput::UpdateCameraState(...);
-    if (ViewportInput::IsCameraActive()) {
-        // Process WASD + mouse for camera
+```cpp
+class EditorApplication : public Application
+{
+public:
+    virtual void OnInit() override {
+        // Initialize Input, Layers
     }
     
-    // ImGui frame
-    imgui.Begin();
-    // Dockspace setup
-    editor.OnImGuiRender();
-    imgui.End();
+    virtual void OnUpdate(float deltaTime) override {
+        // Clear screen
+        // Update input
+        // Render ImGui layers
+    }
     
-    app.GetWindow()->OnUpdate();
-}
+    virtual void OnShutdown() override {
+        // Cleanup
+    }
+};
 ```
 
 ### ImGuiLayer (`Core/ImGuiLayer.hpp/cpp`)

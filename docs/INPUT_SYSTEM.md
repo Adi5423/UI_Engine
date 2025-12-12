@@ -253,21 +253,27 @@ Returns `true` if current mouse position is within viewport bounds.
 
 ## Usage Pattern: Editor Camera Controls
 
-**Location:** `Editor/main.cpp`
+**Location:** `Editor/Core/EditorApplication.cpp`
 
 ### Setup
 
 ```cpp
-// Initialize both input systems
-GLFWwindow* window = app.GetWindow()->GetNativeWindow();
-Input::Init(window);
-ViewportInput::Init(window);
+void EditorApplication::OnInit()
+{
+    // Initialize both input systems
+    GLFWwindow* window = (GLFWwindow*)GetWindow()->GetNativeWindow();
+    Input::Init(window);
+    ViewportInput::Init(window);
+    
+    // ...
+}
 ```
 
-### Main Loop
+### Update Loop
 
 ```cpp
-while (running) {
+void EditorApplication::OnUpdate(float deltaTime)
+{
     // 1. Update camera activation state
     ViewportInput::UpdateCameraState(
         Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)
@@ -275,11 +281,6 @@ while (running) {
     
     // 2. If camera active, process input
     if (ViewportInput::IsCameraActive()) {
-        // Delta time for smooth movement
-        static float lastTime = (float)glfwGetTime();
-        float time = (float)glfwGetTime();
-        float dt = time - lastTime;
-        lastTime = time;
         
         // WASD movement direction
         glm::vec3 dir{0.0f};
@@ -295,8 +296,8 @@ while (running) {
         ViewportInput::GetMouseDelta(dx, dy);
         
         // Apply to camera
-        editor.GetCamera().ProcessKeyboard(dir, dt);
-        editor.GetCamera().ProcessMouseMovement((float)dx, (float)dy);
+        m_EditorLayer->GetCamera().ProcessKeyboard(dir, deltaTime);
+        m_EditorLayer->GetCamera().ProcessMouseMovement((float)dx, (float)dy);
     }
     
     // 3. Render and update UI
