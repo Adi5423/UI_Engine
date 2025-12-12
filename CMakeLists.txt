@@ -30,6 +30,14 @@ target_include_directories(imgui PUBLIC
 )
 target_link_libraries(imgui PUBLIC glad glfw)
 
+# ImGuizmo
+set(IMGUIZMO_DIR vendor/ImGuizmo)
+add_library(ImGuizmo STATIC
+    ${IMGUIZMO_DIR}/ImGuizmo.cpp
+)
+target_include_directories(ImGuizmo PUBLIC ${IMGUIZMO_DIR})
+target_link_libraries(ImGuizmo PUBLIC imgui)
+
 include_directories(
     vendor/glm
     vendor/stb

@@ -1,7 +1,9 @@
 ﻿#include "EditorLayer.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <ImGuizmo.h>
 #include <glad/glad.h>      // for glDrawElements etc.
 #include <glm/glm.hpp>
 
@@ -12,6 +14,43 @@
 #include <Scene/SceneAPI.hpp>
 #include <Core/ThemeSettings.hpp>
 #include <Core/ImGuiLayer.hpp>
+
+// Helper for Selection
+static bool RayIntersectsAABB(glm::vec3 origin, glm::vec3 dir, glm::vec3 minB, glm::vec3 maxB, float& t)
+{
+    float tmin = (minB.x - origin.x) / dir.x;
+    float tmax = (maxB.x - origin.x) / dir.x;
+
+    if (tmin > tmax) std::swap(tmin, tmax);
+
+    float tymin = (minB.y - origin.y) / dir.y;
+    float tymax = (maxB.y - origin.y) / dir.y;
+
+    if (tymin > tymax) std::swap(tymin, tymax);
+
+    if ((tmin > tymax) || (tymin > tmax))
+        return false;
+
+    if (tymin > tmin) tmin = tymin;
+    if (tymax < tmax) tmax = tymax;
+
+    float tzmin = (minB.z - origin.z) / dir.z;
+    float tzmax = (maxB.z - origin.z) / dir.z;
+
+    if (tzmin > tzmax) std::swap(tzmin, tzmax);
+
+    if ((tmin > tzmax) || (tzmin > tmax))
+        return false;
+
+    if (tzmin > tmin) tmin = tzmin;
+    if (tzmax < tmax) tmax = tzmax;
+
+    if (tmax < 0) return false;
+
+    t = tmin;
+    if (t < 0) t = tmax;
+    return true;
+}
 
 
 EditorLayer::EditorLayer() : Layer("EditorLayer") {}
@@ -73,10 +112,11 @@ void main()
 #version 450 core
 
 out vec4 FragColor;
+uniform vec4 u_Color;
 
 void main()
 {
-    FragColor = vec4(0.2, 0.7, 1.0, 1.0);
+    FragColor = u_Color;
 }
 )";
 
@@ -121,6 +161,15 @@ void EditorLayer::OnUpdate(float deltaTime)
 
         m_EditorCamera.ProcessKeyboard(dir, deltaTime);
         m_EditorCamera.ProcessMouseMovement((float)dx, (float)dy);
+    }
+
+    // Gizmo Shortcuts
+    if (!ImGui::GetIO().WantTextInput)
+    {
+        if (Input::IsKeyPressed(GLFW_KEY_Q)) m_GizmoType = -1;
+        if (Input::IsKeyPressed(GLFW_KEY_W)) m_GizmoType = ImGuizmo::TRANSLATE;
+        if (Input::IsKeyPressed(GLFW_KEY_E)) m_GizmoType = ImGuizmo::ROTATE;
+        if (Input::IsKeyPressed(GLFW_KEY_R)) m_GizmoType = ImGuizmo::SCALE;
     }
 }
 
@@ -203,6 +252,8 @@ void EditorLayer::DrawThemePanel()
 
 void EditorLayer::OnImGuiRender()
 {
+    ImGuizmo::BeginFrame();
+
     // overriding user changes while editing in themes panel.
     // ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
     // ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
@@ -281,13 +332,6 @@ void EditorLayer::DrawInspectorPanel()
         ImGui::TextDisabled("Inspector");
         ImGui::Separator();
         ImGui::Spacing();
-
-        // Button to add Cube
-        if (ImGui::Button("Create Cube"))
-        {
-            SceneAPI::CreateMeshEntity(*m_ActiveScene, "Cube", Mesh::CreateCube());
-        }
-        ImGui::Separator();
 
         if (!m_SelectedEntity || !m_ActiveScene)
         {
@@ -420,6 +464,9 @@ void EditorLayer::DrawViewportPanel()
 
         // Loop through all entities with TransformComponent and MeshComponent
         auto& reg = m_ActiveScene->Reg();
+        // Set default color
+        m_Shader->SetFloat4("u_Color", glm::vec4(0.2f, 0.7f, 1.0f, 1.0f));
+
         reg.view<TransformComponent, MeshComponent>().each(
             [&](auto entity, TransformComponent& transform, MeshComponent& meshComp)
             {
@@ -439,6 +486,29 @@ void EditorLayer::DrawViewportPanel()
                     GL_UNSIGNED_INT,
                     nullptr);
             });
+            
+        // Render Selection Highlight (Wireframe)
+        if (m_SelectedEntity && m_SelectedEntity.HasComponent<MeshComponent>())
+        {
+             auto& mc = m_SelectedEntity.GetComponent<MeshComponent>();
+             if (mc.MeshHandle)
+             {
+                 auto& tc = m_SelectedEntity.GetComponent<TransformComponent>();
+                 
+                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                 glLineWidth(4.0f);
+                 
+                 m_Shader->SetFloat4("u_Color", glm::vec4(1.0f, 0.5f, 0.0f, 1.0f)); // Orange
+                 m_Shader->SetMat4("u_Model", tc.GetMatrix());
+                 
+                 auto* va = mc.MeshHandle->GetVertexArray();
+                 va->Bind();
+                 glDrawElements(GL_TRIANGLES, mc.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+                 
+                 glLineWidth(1.0f);
+                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+             }
+        }
 
         m_Framebuffer->Unbind();
         // -------------------------------
@@ -447,6 +517,106 @@ void EditorLayer::DrawViewportPanel()
         ImGui::Image((void*)(intptr_t)textureID,
             viewportPanelSize,
             ImVec2(0, 1), ImVec2(1, 0));
+
+        // Gizmos
+        if (m_SelectedEntity && m_GizmoType != -1)
+        {
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetDrawlist();
+            
+            ImGuizmo::SetRect(globalImage.x, globalImage.y, m_ViewportSize.x, m_ViewportSize.y);
+
+            // Camera
+            const glm::mat4& cameraProjection = m_EditorCamera.GetProjectionMatrix();
+            glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
+
+            // Entity Transform
+            auto& tc = m_SelectedEntity.GetComponent<TransformComponent>();
+            glm::mat4 transform = tc.GetMatrix();
+
+            // Snapping
+            bool snap = Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL);
+            float snapValue = 0.5f; // Snap to 0.5m for translation/scale
+            if (m_GizmoType == ImGuizmo::ROTATE) snapValue = 45.0f; // 45 degrees
+            
+            float snapValues[3] = { snapValue, snapValue, snapValue };
+
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                nullptr, snap ? snapValues : nullptr);
+
+            if (ImGuizmo::IsUsing())
+            {
+                float translation[3], rotation[3], scale[3];
+                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), translation, rotation, scale);
+                
+                tc.Position = glm::vec3(translation[0], translation[1], translation[2]);
+                tc.Rotation = glm::vec3(rotation[0], rotation[1], rotation[2]);
+                tc.Scale = glm::vec3(scale[0], scale[1], scale[2]);
+            }
+        }
+        
+        // Mouse Picking
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && 
+            ImGui::IsWindowHovered() && 
+            !ImGuizmo::IsOver() && 
+            !ImGui::GetIO().WantCaptureKeyboard)
+        {
+            ImVec2 mousePos = ImGui::GetMousePos();
+            ImVec2 vpPos = globalImage;
+            
+            // Check inside viewport
+            if (mousePos.x >= vpPos.x && mousePos.y >= vpPos.y &&
+                mousePos.x < (vpPos.x + m_ViewportSize.x) && mousePos.y < (vpPos.y + m_ViewportSize.y))
+            {
+                // Local Mouse
+                glm::vec2 localMouse = { mousePos.x - vpPos.x, mousePos.y - vpPos.y };
+                
+                // NDC
+                float u = (localMouse.x / m_ViewportSize.x) * 2.0f - 1.0f;
+                float v = ((m_ViewportSize.y - localMouse.y) / m_ViewportSize.y) * 2.0f - 1.0f;
+                
+                const glm::mat4& proj = m_EditorCamera.GetProjectionMatrix();
+                const glm::mat4& view = m_EditorCamera.GetViewMatrix();
+                // Or easier: GetViewProjection
+                
+                // Unproject
+                glm::mat4 invVP = glm::inverse(proj * view);
+                
+                glm::vec4 rayStart = invVP * glm::vec4(u, v, -1.0f, 1.0f); rayStart /= rayStart.w;
+                glm::vec4 rayEnd   = invVP * glm::vec4(u, v,  1.0f, 1.0f); rayEnd   /= rayEnd.w;
+                
+                glm::vec3 rayDir = glm::normalize(glm::vec3(rayEnd) - glm::vec3(rayStart));
+                glm::vec3 rayOrigin = glm::vec3(rayStart);
+                
+                 // Intersect
+                 m_SelectedEntity = {};
+                 float minT = FLT_MAX;
+                 
+                 // Unit Cube AABB
+                 glm::vec3 minB(-0.5f);
+                 glm::vec3 maxB(0.5f);
+                 
+                 auto& reg = m_ActiveScene->Reg();
+                 reg.view<TransformComponent, MeshComponent>().each([&](auto entity, TransformComponent& tc, MeshComponent& mc) {
+                     if (!mc.MeshHandle) return;
+                     
+                     glm::mat4 invModel = glm::inverse(tc.GetMatrix());
+                     glm::vec3 localRayOrigin = glm::vec3(invModel * glm::vec4(rayOrigin, 1.0f));
+                     glm::vec3 localRayDir = glm::normalize(glm::vec3(invModel * glm::vec4(rayDir, 0.0f)));
+                     
+                     float t;
+                     if (RayIntersectsAABB(localRayOrigin, localRayDir, minB, maxB, t))
+                     {
+                         if (t < minT)
+                         {
+                             minT = t;
+                             m_SelectedEntity = { entity, m_ActiveScene.get() };
+                         }
+                     }
+                 });
+            }
+        }
     }
     ImGui::End();
 }
