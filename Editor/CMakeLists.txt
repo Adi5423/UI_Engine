@@ -1,5 +1,7 @@
 set(EDITOR_SRC
     main.cpp
+    Core/EditorApplication.cpp
+    Core/EditorApplication.hpp
     Core/ImGuiLayer.cpp
     Core/EditorLayer.cpp
     Core/ThemeSettings.cpp
