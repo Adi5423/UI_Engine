@@ -43,12 +43,12 @@ public:
     // Editor-Specific API
     // ========================================================================
     
-    EditorLayer* GetEditorLayer() const { return m_EditorLayer.get(); }
+    EditorLayer* GetEditorLayer() const { return m_EditorLayer; }
 
 private:
     // Layers
-    std::unique_ptr<ImGuiLayer> m_ImGuiLayer;
-    std::unique_ptr<EditorLayer> m_EditorLayer;
+    ImGuiLayer* m_ImGuiLayer;
+    EditorLayer* m_EditorLayer;
 
     // State
     bool m_ShowDockspace = true;

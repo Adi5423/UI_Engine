@@ -24,7 +24,11 @@
  */
 
 #include "Window.hpp"
+#include "Events/Event.hpp"
+#include "Events/ApplicationEvent.hpp"
+#include "LayerStack.hpp"
 #include <string>
+#include <memory>
 
 // ============================================================================
 // Command Line Arguments
@@ -92,6 +96,12 @@ public:
      * Runs the main application loop. Called by EntryPoint.
      */
     void Run();
+
+    /**
+     * The Main Event Handler.
+     * Dispatches events to layers and handles internal engine events.
+     */
+    void OnEvent(EventSystem::Event& e);
     
     /**
      * Request the application to close. The loop will end gracefully.
@@ -106,7 +116,7 @@ public:
     /**
      * Get the application window.
      */
-    Window* GetWindow() const { return m_Window; }
+    Window* GetWindow() const { return m_Window.get(); }
 
     /**
      * Get the application specification.
@@ -118,12 +128,23 @@ public:
      */
     static Application& Get() { return *s_Instance; }
 
+    LayerStack& GetLayerStack() { return m_LayerStack; }
+
+    // Layer System wrappers
+    void PushLayer(Layer* layer);
+    void PushOverlay(Layer* layer);
+
 private:
+    bool OnWindowClose(EventSystem::WindowCloseEvent& e);
+    bool OnWindowResize(EventSystem::WindowResizeEvent& e);
+
     ApplicationSpecification m_Specification;
-    Window* m_Window = nullptr;
+    std::unique_ptr<Window> m_Window;
     bool m_Running = true;
     bool m_Minimized = false;
     float m_LastFrameTime = 0.0f;
+
+    LayerStack m_LayerStack;
 
     static Application* s_Instance;
 };

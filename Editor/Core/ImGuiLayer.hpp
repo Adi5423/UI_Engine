@@ -2,15 +2,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
+#include "Core/Layer.hpp"
 
-class ImGuiLayer
+class ImGuiLayer : public Layer
 {
 public:
     ImGuiLayer();
     ~ImGuiLayer();
 
-    void OnAttach(GLFWwindow* window);
-    void OnDetach();
+    void OnAttach() override;
+    void OnDetach() override;
 
     void Begin();
     void End();

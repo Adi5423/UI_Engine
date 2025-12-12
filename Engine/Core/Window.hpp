@@ -2,6 +2,7 @@
 #include <string>
 #include <functional>
 #include <cstdint>   // for uint32_t
+#include "Events/Event.hpp"
 
 struct WindowProps
 {
@@ -27,6 +28,10 @@ public:
     virtual uint32_t GetHeight() const = 0;
 
     virtual void* GetNativeWindow() const = 0;
+
+    // Event System
+    using EventCallbackFn = std::function<void(EventSystem::Event&)>;
+    virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 
     static Window* Create(const WindowProps& props = WindowProps());
 };

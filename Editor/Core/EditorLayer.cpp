@@ -14,7 +14,7 @@
 #include <Core/ImGuiLayer.hpp>
 
 
-EditorLayer::EditorLayer() = default;
+EditorLayer::EditorLayer() : Layer("EditorLayer") {}
 EditorLayer::~EditorLayer() = default;
 
 void EditorLayer::OnAttach()
@@ -89,12 +89,39 @@ void main()
     m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
 }
 
+#include <Core/Input/Input.hpp>
+
+// ...
+
 void EditorLayer::OnDetach()
 {
     m_ActiveScene.reset();
     m_Framebuffer.reset();
     // m_CubeVA.reset();
     m_Shader.reset();
+}
+
+void EditorLayer::OnUpdate(float deltaTime)
+{
+    ViewportInput::UpdateCameraState(Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT));
+
+    if (ViewportInput::IsCameraActive())
+    {
+        glm::vec3 dir{0.0f};
+
+        if (Input::IsKeyPressed(GLFW_KEY_W)) dir.z += 1.0f;
+        if (Input::IsKeyPressed(GLFW_KEY_S)) dir.z -= 1.0f;
+        if (Input::IsKeyPressed(GLFW_KEY_A)) dir.x -= 1.0f;
+        if (Input::IsKeyPressed(GLFW_KEY_D)) dir.x += 1.0f;
+        if (Input::IsKeyPressed(GLFW_KEY_E)) dir.y += 1.0f;
+        if (Input::IsKeyPressed(GLFW_KEY_Q)) dir.y -= 1.0f;
+
+        double dx, dy;
+        ViewportInput::GetMouseDelta(dx, dy);
+
+        m_EditorCamera.ProcessKeyboard(dir, deltaTime);
+        m_EditorCamera.ProcessMouseMovement((float)dx, (float)dy);
+    }
 }
 
 void EditorLayer::DrawThemePanel()
@@ -203,6 +230,16 @@ void EditorLayer::DrawHierarchyPanel()
         ImGui::Separator();
         ImGui::Spacing();
 
+        // Right-click context menu to add Cube
+        if (ImGui::BeginPopupContextWindow())
+        {
+            if (ImGui::MenuItem("Create Cube"))
+            {
+                SceneAPI::CreateMeshEntity(*m_ActiveScene, "Cube", Mesh::CreateCube());
+            }
+            ImGui::EndPopup();
+        }
+
         if (!m_ActiveScene)
         {
             ImGui::Text("No active scene.");
@@ -244,6 +281,13 @@ void EditorLayer::DrawInspectorPanel()
         ImGui::TextDisabled("Inspector");
         ImGui::Separator();
         ImGui::Spacing();
+
+        // Button to add Cube
+        if (ImGui::Button("Create Cube"))
+        {
+            SceneAPI::CreateMeshEntity(*m_ActiveScene, "Cube", Mesh::CreateCube());
+        }
+        ImGui::Separator();
 
         if (!m_SelectedEntity || !m_ActiveScene)
         {

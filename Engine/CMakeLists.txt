@@ -3,6 +3,10 @@ set(ENGINE_SRC
     Core/GLFWWindow.cpp
     Core/Input/Input.cpp
     Core/Input/ViewportInput.cpp
+    Core/Log.cpp
+    Core/Resources/ResourceManager.cpp
+    Core/Layer.cpp
+    Core/LayerStack.cpp
 
     Rendering/Mesh/Mesh.cpp
 
