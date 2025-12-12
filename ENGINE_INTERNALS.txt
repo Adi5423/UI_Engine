@@ -1,0 +1,164 @@
+================================================================================
+                       UI ENGINE - INTERNAL ARCHITECTURE DEEP DIVE
+================================================================================
+
+This document provides a highly detailed explanation of the engine's architecture, 
+covering every step of execution from clicking the executable to closing the 
+window. It explains the "professional game engine" pattern implemented, including 
+the Entry Point, Application Lifecycle, Event System, and Resource Management.
+
+--------------------------------------------------------------------------------
+1. THE ENTRY POINT: WHERE IT ALL BEGINS
+--------------------------------------------------------------------------------
+Legacy Approach:
+In standard C++ programs, the `main()` function is often where the application 
+logic lives. This is bad for game engines because it mixes engine startup code 
+with game logic.
+
+Our Professional Approach (Inversion of Control):
+We have moved `main()` inside the engine itself.
+Location: `Engine/Core/EntryPoint.hpp`
+
+HOW IT WORKS:
+1. When you run `UICheckEditor.exe`, the OS calls the `main()` function defined 
+   in `EntryPoint.hpp`.
+2. This `main()` function is the "Bootstrap". It performs critical setup before 
+   the game even starts:
+   - Initializing the LOGGING SYSTEM (`Log::Init()`).
+   - Printing welcome messages.
+3. It then asks the CLIENT (the Editor) to provide an application instance.
+   It does this by calling an external function that the client MUST define:
+   `extern Application* CreateApplication(ApplicationCommandLineArgs args);`
+4. This gives control to the Engine. The Engine decides WHEN to start, UPDATE, 
+   and SHUTDOWN.
+
+--------------------------------------------------------------------------------
+2. THE LOGGING SYSTEM
+--------------------------------------------------------------------------------
+Before anything else, we initialize the logs.
+Location: `Engine/Core/Log.cpp`
+
+FEATURES:
+- Dual Channel: We have `CORE` logs (Engine internals) and `CLIENT` logs (App).
+- Console Output: Uses ANSI escape codes for colors (Green for Info, Red for Error).
+- File Persistence: Automatically creates a `logs/` directory and streams all 
+  output to `engine.log`.
+
+Use Case:
+If the engine crashes during startup, the `engine.log` file will capture the exact 
+error, even if the console window closes immediately.
+
+--------------------------------------------------------------------------------
+3. APPLICATION CREATION & BOOTSTRAP
+--------------------------------------------------------------------------------
+The `CreateApplication` function (defined in `Editor/main.cpp`) is called.
+
+WHAT HAPPENS:
+1. `Editor/main.cpp` prepares an `ApplicationSpecification` struct.
+   - Sets Title: "Groove Engine Editor".
+   - Sets Window Size: 1280x720.
+2. It returns a `new EditorApplication(spec)`.
+
+THE CONSTRUCTOR (Engine/Core/Application.cpp):
+When `new EditorApplication` is called, the base `Application` constructor runs.
+1. It validates that only ONE application instance exists (Singleton).
+2. It calls `Window::Create(props)` to open the OS window.
+   - This creates a `GLFWWindow`.
+   - Initializes GLFW and GLAD (OpenGL Loader).
+   - Sets up OpenGL context (Version 4.6).
+3. **CRITICAL STEP**: It binds the Event Callback.
+   `m_Window->SetEventCallback(...)`
+   This tells the window: "When you get an input (key, mouse, resize), send it 
+   to `Application::OnEvent`."
+
+--------------------------------------------------------------------------------
+4. THE RUN LOOP (The Heart of the Engine)
+--------------------------------------------------------------------------------
+After creation, `EntryPoint` calls `app->Run()`.
+Location: `Engine/Core/Application.cpp` -> `Run()`
+
+This loop continues until `m_Running` becomes false.
+
+THE FRAME CYCLE:
+1. Calculate `deltaTime`: Time elapsed since the last frame.
+2. `OnInit()`: Called once at the start (Client can initialize ImGui, Layers, etc.).
+3. `OnUpdate(deltaTime)`:
+   - This is the client's virtual method.
+   - In `EditorApplication.cpp`, this is where the magic happens:
+     a. Checks Input (`ViewportInput`).
+     b. Clears the screen (`glClear`).
+     c. Renders the 3D Scene (`EditorLayer::OnImGuiRender`).
+     d. Renders the UI Panels (`ImGuiLayer`).
+4. `m_Window->OnUpdate()`:
+   - Polls GLFW events (`glfwPollEvents`).
+   - Swaps OpenGL buffers (VSync).
+
+--------------------------------------------------------------------------------
+5. THE EVENT SYSTEM (Messaging Backbone)
+--------------------------------------------------------------------------------
+What happens when you resize the window or press a key?
+
+FLOW:
+1. **OS Level**: Windows/Linux detects the action.
+2. **GLFW Level**: GLFW callback fires (e.g., `glfwWindowSizeCallback`).
+3. **Engine Level (`GLFWWindow.cpp`)**:
+   - The callback constructs an Engine Event object (e.g., `WindowResizeEvent`).
+   - It calls the `EventCallback` function we set during initialization.
+4. **Application Level (`Application::OnEvent`)**:
+   - The Application receives the generic `Event`.
+   - It uses a `EventDispatcher` to route it.
+   - IF it is a `WindowCloseEvent` -> It calls `OnWindowClose`.
+   - IF it is a `WindowResizeEvent` -> It calls `OnWindowResize`.
+   - Crucially, this system allows us to "Dispatch" events to layers cleanly 
+     without spaghetti code.
+
+Why is this "Professional"?
+It decouples the Windowing library (GLFW) from the Engine logic. If we switched 
+to SDL or Win32 API later, the rest of the engine wouldn't care because it only 
+speaks "Groove Engine Events".
+
+--------------------------------------------------------------------------------
+6. RESOURCE MANAGEMENT (The Backbone)
+--------------------------------------------------------------------------------
+Location: `Engine/Core/Resources/ResourceManager.hpp`
+
+We implemented a centralized system for assets.
+- **Problem**: Loading the same shader 50 times wastes memory.
+- **Solution**: The `ResourceManager` keeps a cache (`std::unordered_map`).
+
+FLOW:
+1. You ask for `ResourceManager::LoadShader("MyShader")`.
+2. It checks the map.
+   - EXISTS? Return the existing pointer.
+   - MISSING? Load from disk, compile, store in map, then return.
+3. This ensures efficient memory usage and centralized access.
+
+Note: Currently, we implemented the "Backbone" (Shaders and Texture stubs) 
+ready to be expanded for 3D Models (OBJ/GLTF) seamlessly.
+
+--------------------------------------------------------------------------------
+7. SHUTDOWN SEQUECE
+--------------------------------------------------------------------------------
+When you click the 'X' button:
+1. `GLFWWindow` fires `WindowCloseEvent`.
+2. `Application::OnEvent` catches it.
+3. `Dispatcher` routes it to `Application::OnWindowClose`.
+4. `m_Running` is set to `false`.
+5. The `while (m_Running)` loop in `Run()` breaks.
+6. `OnShutdown()` is called (Client cleans up layers).
+7. `EntryPoint` deletes the App instance.
+8. `Log` system shuts down (files are flushed).
+9. Program terminates return code 0.
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+We have transformed a simple specific application into a generic, robust Game Engine.
+- **Inversion of Control**: Engine runs the Show.
+- **Event Bus**: Communications are standardized.
+- **Subsystems**: Logging, Input, Resources are modular services.
+- **Maintainability**: Adding new features (like Audio) is now easy because the 
+  lifecycle and structure are defined.
+
+This is the exact architecture used by Hazel, and conceptually similar to Unity 
+and Unreal Engine's core loop.
