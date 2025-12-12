@@ -32,6 +32,7 @@
  */
 
 #include "Application.hpp"
+#include "Log.hpp"
 #include <iostream>
 
 // Forward declaration - must be implemented by the client application
@@ -42,9 +43,11 @@ int main(int argc, char** argv)
     // ========================================================================
     // PHASE 1: Pre-Initialization
     // ========================================================================
-    std::cout << "===============================================\n";
-    std::cout << "   Groove Engine - Initializing...\n";
-    std::cout << "===============================================\n";
+    Core::Log::Init();
+    
+    CORE_INFO("===============================================");
+    CORE_INFO("   Groove Engine - Initializing...");
+    CORE_INFO("===============================================");
 
     // ========================================================================
     // PHASE 2: Create Application
@@ -57,30 +60,30 @@ int main(int argc, char** argv)
     Application* app = CreateApplication(args);
     if (!app)
     {
-        std::cerr << "[FATAL] CreateApplication() returned nullptr!\n";
+        CORE_FATAL("CreateApplication() returned nullptr!");
         return -1;
     }
 
-    std::cout << "[Engine] Application created successfully.\n";
+    CORE_INFO("Application created successfully.");
 
     // ========================================================================
     // PHASE 3: Run the Application
     // ========================================================================
-    std::cout << "[Engine] Entering main loop...\n";
-    std::cout << "===============================================\n\n";
+    CORE_INFO("Entering main loop...");
+    CORE_INFO("===============================================\n");
 
     app->Run();
 
     // ========================================================================
     // PHASE 4: Shutdown
     // ========================================================================
-    std::cout << "\n===============================================\n";
-    std::cout << "[Engine] Shutting down...\n";
+    CORE_INFO("\n===============================================");
+    CORE_INFO("Shutting down...");
     
     delete app;
     
-    std::cout << "[Engine] Application terminated successfully.\n";
-    std::cout << "===============================================\n";
+    CORE_INFO("Application terminated successfully.");
+    CORE_INFO("===============================================");
 
     return 0;
 }

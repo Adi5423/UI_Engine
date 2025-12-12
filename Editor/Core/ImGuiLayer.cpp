@@ -1,5 +1,6 @@
 ﻿#include "ImGuiLayer.hpp"
 #include "ThemeSettings.hpp"
+#include "Core/Application.hpp"
 
 // ImGui core
 #include <imgui.h>
@@ -10,13 +11,14 @@
 
 #include <iostream>
 
-ImGuiLayer::ImGuiLayer() {}
+ImGuiLayer::ImGuiLayer() : Layer("ImGuiLayer") {}
 ImGuiLayer::~ImGuiLayer() {}
 // Defining static variable
 ImGuiStyle ImGuiLayer::DefaultEngineStyle;
 
-void ImGuiLayer::OnAttach(GLFWwindow* window)
+void ImGuiLayer::OnAttach()
 {
+    GLFWwindow* window = (GLFWwindow*)Application::Get().GetWindow()->GetNativeWindow();
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 

@@ -13,8 +13,9 @@
 #include <Rendering/Buffers/VertexArray.hpp>
 #include <Rendering/Shaders/Shader.hpp>
 #include <Rendering/Camera/EditorCamera.hpp>
+#include "Core/Layer.hpp"
 
-class EditorLayer
+class EditorLayer : public Layer
 {
 public:
     EditorLayer();
@@ -23,8 +24,9 @@ public:
 
     bool m_ShowThemePanel = false;
 
-    void OnAttach();
-    void OnDetach();
+    void OnAttach() override;
+    void OnDetach() override;
+    void OnUpdate(float deltaTime) override;
     void ToggleThemePanel() { m_ShowThemePanel = !m_ShowThemePanel; }
     void DrawThemePanel();
     void OnImGuiRender(); // Called every frame to draw panels

@@ -38,11 +38,11 @@ void EditorApplication::OnInit()
     // ========================================================================
     // Create and Attach Layers
     // ========================================================================
-    m_ImGuiLayer = std::make_unique<ImGuiLayer>();
-    m_EditorLayer = std::make_unique<EditorLayer>();
+    m_ImGuiLayer = new ImGuiLayer();
+    PushOverlay(m_ImGuiLayer);
 
-    m_ImGuiLayer->OnAttach(window);
-    m_EditorLayer->OnAttach();
+    m_EditorLayer = new EditorLayer();
+    PushLayer(m_EditorLayer);
 
     std::cout << "[Editor] Layers initialized.\n";
 }
@@ -55,28 +55,7 @@ void EditorApplication::OnUpdate(float deltaTime)
     glClearColor(0.1f, 0.1f, 0.1f, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // ========================================================================
-    // Viewport-Scoped Camera Input
-    // ========================================================================
-    ViewportInput::UpdateCameraState(Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT));
-
-    if (ViewportInput::IsCameraActive())
-    {
-        glm::vec3 dir{0.0f};
-
-        if (Input::IsKeyPressed(GLFW_KEY_W)) dir.z += 1.0f;
-        if (Input::IsKeyPressed(GLFW_KEY_S)) dir.z -= 1.0f;
-        if (Input::IsKeyPressed(GLFW_KEY_A)) dir.x -= 1.0f;
-        if (Input::IsKeyPressed(GLFW_KEY_D)) dir.x += 1.0f;
-        if (Input::IsKeyPressed(GLFW_KEY_E)) dir.y += 1.0f;
-        if (Input::IsKeyPressed(GLFW_KEY_Q)) dir.y -= 1.0f;
-
-        double dx, dy;
-        ViewportInput::GetMouseDelta(dx, dy);
-
-        m_EditorLayer->GetCamera().ProcessKeyboard(dir, deltaTime);
-        m_EditorLayer->GetCamera().ProcessMouseMovement((float)dx, (float)dy);
-    }
+    // NOTE: Camera/Input Logic moved to EditorLayer::OnUpdate(), called by Application Stack.
 
     // ========================================================================
     // ImGui Rendering
@@ -85,7 +64,9 @@ void EditorApplication::OnUpdate(float deltaTime)
 
     RenderDockspace();
 
-    m_EditorLayer->OnImGuiRender();
+    // Render all layers ImGui
+    for (Layer* layer : GetLayerStack())
+        layer->OnImGuiRender();
 
     m_ImGuiLayer->End();
 }
@@ -93,12 +74,9 @@ void EditorApplication::OnUpdate(float deltaTime)
 void EditorApplication::OnShutdown()
 {
     std::cout << "[Editor] Shutting down layers...\n";
-
-    m_EditorLayer->OnDetach();
-    m_ImGuiLayer->OnDetach();
-
-    m_EditorLayer.reset();
-    m_ImGuiLayer.reset();
+    // Layers are deleted by LayerStack in Application destructor
+    m_EditorLayer = nullptr;
+    m_ImGuiLayer = nullptr;
 }
 
 void EditorApplication::RenderDockspace()
