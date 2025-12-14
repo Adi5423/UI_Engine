@@ -7,15 +7,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # ----------- vendor libs -----------
-add_library(glad STATIC vendor/glad/src/glad.c)
+add_library(glad SHARED vendor/glad/src/glad.c)
 target_include_directories(glad PUBLIC vendor/glad/include)
+set_target_properties(glad PROPERTIES 
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
+    PREFIX ""
+)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
 add_subdirectory(vendor/glfw)
 
 set(IMGUI_DIR vendor/imgui)
-add_library(imgui STATIC
+add_library(imgui SHARED
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_draw.cpp
     ${IMGUI_DIR}/imgui_widgets.cpp
@@ -29,14 +34,22 @@ target_include_directories(imgui PUBLIC
     ${IMGUI_DIR}/backends
 )
 target_link_libraries(imgui PUBLIC glad glfw)
+set_target_properties(imgui PROPERTIES 
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
+    PREFIX ""
+)
 
 # ImGuizmo
 set(IMGUIZMO_DIR vendor/ImGuizmo)
-add_library(ImGuizmo STATIC
+add_library(ImGuizmo SHARED
     ${IMGUIZMO_DIR}/ImGuizmo.cpp
 )
 target_include_directories(ImGuizmo PUBLIC ${IMGUIZMO_DIR})
 target_link_libraries(ImGuizmo PUBLIC imgui)
+set_target_properties(ImGuizmo PROPERTIES 
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
+    PREFIX ""
+)
 
 include_directories(
     vendor/glm
@@ -48,3 +61,14 @@ include_directories(
 # ---------- engine & editor ------------
 add_subdirectory(Engine)
 add_subdirectory(Editor)
+
+# ---------- install / release packaging ------------
+install(TARGETS UICheckEditor UICheckEngine glfw glad imgui ImGuizmo
+    RUNTIME DESTINATION .
+    LIBRARY DESTINATION .
+    ARCHIVE DESTINATION lib
+)
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/Drop_at_EXE")
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/Drop_at_EXE/" DESTINATION .)
+endif()

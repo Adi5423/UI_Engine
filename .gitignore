@@ -44,3 +44,8 @@ Thumbs.db
 # local files 
 temp_data.txt   
 logs/
+
+New Folder
+ReleaseBuild
+
+/*.zip

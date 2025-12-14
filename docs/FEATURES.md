@@ -80,6 +80,20 @@ The UI Engine provides a robust set of features designed for professional game d
 - **Serialization**: Save/Load themes to/from JSON.
 - **Persistence**: Remembers last active theme on startup.
 
+### 12. Scene Operations & Tools
+- **Selection**: Ray-AABB intersection for clicking entities in viewport (supports logic for all mesh types).
+- **Transform Gizmos**: Professional visual manipulators (Translate, Rotate, Scale) powered by ImGuizmo.
+- **Delete Popup**: Context-aware modal popup (Confirm/Cancel) positioned at object's screen location.
+- **Shortcuts**: Industry-standard hotkeys (Q, W, E, R for gizmos, Delete/X for deletion, Ctrl+Z/Y for Undo/Redo).
+
+### 13. Undo/Redo System
+- **Command Pattern**: Architecture supporting infinite undo history.
+- **Actions Supported**: 
+  - Entity Creation/Deletion
+  - Transform Modification (Gizmo & Inspector)
+  - Entity Renaming
+- **Robustness**: Handles state restoration including deep component copies and handle recycling.
+
 ---
 
 ## Build System
