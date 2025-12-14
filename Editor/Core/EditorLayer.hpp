@@ -70,10 +70,17 @@ private:
     // Delete Popup State
     bool m_ShowDeletePopup = false;
     glm::vec2 m_DeletePopupPos = { 0.0f, 0.0f };
+    glm::vec3 m_DeletePopupWorldPos = { 0.0f, 0.0f, 0.0f };
+    bool m_DeletePopupNeedsPositioning = false;
 
     // Internal helpers
     void DrawHierarchyPanel();
     void DrawInspectorPanel();
     void DrawContentBrowserPanel();
     void DrawViewportPanel();
+    
+    // Utility
+    glm::vec2 WorldToScreen(const glm::vec3& worldPos, const glm::mat4& view, 
+                            const glm::mat4& proj, const glm::vec2& viewportSize, 
+                            const glm::vec2& viewportPos);
 };
