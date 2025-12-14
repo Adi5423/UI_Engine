@@ -12,6 +12,7 @@ public:
     }
 
     entt::entity Handle() const { return m_Handle; }
+    Scene* GetScene() const { return m_Scene; }
     operator bool() const { return m_Handle != entt::null; }
 
     template<typename T, typename... Args>

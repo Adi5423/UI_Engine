@@ -7,6 +7,7 @@ set(ENGINE_SRC
     Core/Resources/ResourceManager.cpp
     Core/Layer.cpp
     Core/LayerStack.cpp
+    Core/UUID.cpp
 
     Rendering/Mesh/Mesh.cpp
 

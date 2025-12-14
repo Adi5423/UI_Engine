@@ -13,6 +13,8 @@
 #include <Rendering/Buffers/VertexArray.hpp>
 #include <Rendering/Shaders/Shader.hpp>
 #include <Rendering/Camera/EditorCamera.hpp>
+#include <Core/Commands/CommandHistory.hpp>
+#include <Core/Commands/SceneCommands.hpp>
 #include "Core/Layer.hpp"
 
 class EditorLayer : public Layer
@@ -34,17 +36,40 @@ public:
 private:
     // Scene / ECS
     std::unique_ptr<Scene> m_ActiveScene;
-    Entity                 m_SelectedEntity;
+    Entity m_SelectedEntity;
 
     // Rendering
     std::unique_ptr<Framebuffer> m_Framebuffer;
-    glm::vec2                    m_ViewportSize = { 1280.0f, 720.0f };
+    glm::vec2 m_ViewportSize = { 1280.0f, 720.0f };
 
-    std::unique_ptr<Shader>      m_Shader;
+    std::unique_ptr<Shader> m_Shader;
     
-    EditorCamera                 m_EditorCamera;
+    EditorCamera m_EditorCamera;
     
-    int                          m_GizmoType = 0; // ImGuizmo::OPERATION
+    int m_GizmoType = 0; // ImGuizmo::OPERATION
+
+    // Command History for Undo/Redo
+    CommandHistory m_CommandHistory;
+
+    // State tracking for undo/redo
+    struct {
+        TransformComponent savedTransform;
+        bool isEditingPosition = false;
+        bool isEditingRotation = false;
+        bool isEditingScale = false;
+    } m_TransformEditState;
+    
+    std::string m_PreviousName;
+    bool m_IsEditingName = false;
+    bool m_WasUsingGizmo = false;
+
+    // Shortcuts state
+    bool m_UndoPressedLastFrame = false;
+    bool m_RedoPressedLastFrame = false;
+
+    // Delete Popup State
+    bool m_ShowDeletePopup = false;
+    glm::vec2 m_DeletePopupPos = { 0.0f, 0.0f };
 
     // Internal helpers
     void DrawHierarchyPanel();

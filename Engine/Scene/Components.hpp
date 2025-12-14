@@ -6,6 +6,19 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <Rendering/Mesh/Mesh.hpp>
+#include <Core/UUID.hpp>
+
+// -----------------------------
+// ID Component
+// -----------------------------
+struct IDComponent
+{
+    Core::UUID ID;
+
+    IDComponent() = default;
+    IDComponent(const Core::UUID& uuid)
+        : ID(uuid) {}
+};
 
 // -----------------------------
 // Tag Component
