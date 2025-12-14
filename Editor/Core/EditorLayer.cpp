@@ -326,12 +326,27 @@ void EditorLayer::DrawInspectorPanel()
 
             ImGui::Text("Name");
             ImGui::SameLine();
-            if (ImGui::IsItemActivated()) m_PreviousName = tag.Tag;
+            
+            // Capture original name before modification
+            std::string originalTag = tag.Tag;
+            
+            // Input widget
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer))) tag.Tag = std::string(buffer);
-            if (ImGui::IsItemDeactivatedAfterEdit())
+            
+            // On activation, store the ORIGINAL name (before any potential immediate edit)
+            if (ImGui::IsItemActivated())
+            {
+                m_PreviousName = originalTag;
+            }
+            
+            if (ImGui::IsItemDeactivatedAfterEdit() || (ImGui::IsItemActive() && Input::IsKeyPressed(GLFW_KEY_ENTER)))
             {
                 std::string newName = tag.Tag;
-                if (newName != m_PreviousName) EditorBridge::SubmitRename(m_SelectedEntity, m_PreviousName, newName);
+                if (newName != m_PreviousName)
+                {
+                    EditorBridge::SubmitRename(m_SelectedEntity, m_PreviousName, newName);
+                    m_PreviousName = newName; 
+                }
             }
             ImGui::Separator();
         }
