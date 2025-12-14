@@ -248,6 +248,21 @@ public:
 };
 ```
 
+### EditorBridge (`Core/EditorBridge.hpp/cpp`)
+acts as a specialized intermediary between the Editor UI and the Command System.
+- **Responsibility**: Centralizes logic for submitting commands (Transform, Identify, Create, Delete).
+- **Separation of Concerns**: Ensures the "pure" command logic (Backend) is separated from UI-specific logging and validation (Frontend). 
+- **Logging**: Handles high-level action logging (e.g., "[Bridge] Entity Deleted: UUID"), keeping backend commands clean and silent.
+
+### Command System (`Engine/Core/Commands/`)
+Implements the Command Pattern for robust Undo/Redo functionality.
+- **CommandHistory**: Manages the undo/redo stacks.
+- **SceneCommands**: Concrete implementations (`DeleteEntityCommand`, `ModifyTransformCommand`, `CreateMeshCommand`, `RenameEntityCommand`).
+- **Features**:
+  - **Reversible Operations**: Every action has a corresponding `Undo()` method.
+  - **State Persistence**: Uses object copies and deep cloning (via `std::shared_ptr` for meshes) to ensure state acts as a reliable snapshot.
+  - **Crash Safety**: Handles null checks and entity validity internally.
+
 ### ImGuiLayer (`Core/ImGuiLayer.hpp/cpp`)
 
 Responsibilities:

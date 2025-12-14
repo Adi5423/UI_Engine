@@ -17,12 +17,16 @@ set(ENGINE_SRC
     Scene/Scene.cpp
 )
 
-add_library(UICheckEngine STATIC ${ENGINE_SRC} 
+add_library(UICheckEngine SHARED ${ENGINE_SRC} 
         "Rendering/Shaders/Shader.cpp" 
         "Rendering/Buffers/Buffer.cpp" 
         "Rendering/Buffers/VertexArray.cpp" 
         "Rendering/Camera/EditorCamera.cpp"
         
+)
+set_target_properties(UICheckEngine PROPERTIES 
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
+    PREFIX ""
 )
 
 target_include_directories(UICheckEngine PUBLIC
