@@ -4,6 +4,7 @@ set(EDITOR_SRC
     Core/EditorApplication.hpp
     Core/ImGuiLayer.cpp
     Core/EditorLayer.cpp
+    Core/EditorBridge.cpp
     Core/ThemeSettings.cpp
     Core/ImGuiLayer.hpp
 )
