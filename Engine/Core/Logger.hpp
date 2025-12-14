@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <filesystem>
 
 /**
  * Simple logging system for the engine
@@ -24,6 +25,13 @@ public:
 
     static void Init(const std::string& filepath = "logs/Editor.log")
     {
+        // Ensure directory exists
+        std::filesystem::path path(filepath);
+        if (path.has_parent_path())
+        {
+            std::filesystem::create_directories(path.parent_path());
+        }
+
         Get().m_LogFile.open(filepath, std::ios::out | std::ios::app);
         if (Get().m_LogFile.is_open())
         {
