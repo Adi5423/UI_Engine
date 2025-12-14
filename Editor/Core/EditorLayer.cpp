@@ -483,6 +483,7 @@ void EditorLayer::DrawViewportPanel()
         }
 
         m_Framebuffer->Bind();
+        glEnable(GL_DEPTH_TEST); // Ensure depth test is on for 3D rendering
         Renderer::Clear({ 0.12f, 0.12f, 0.14f, 1.0f });
         m_Shader->Bind();
         m_Shader->SetMat4("u_ViewProj", m_EditorCamera.GetViewProjection());
@@ -544,9 +545,26 @@ void EditorLayer::DrawViewportPanel()
                 if (!m_WasUsingGizmo) { m_TransformEditState.savedTransform = tc; m_WasUsingGizmo = true; }
                 float translation[3], rotation[3], scale[3];
                 ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), translation, rotation, scale);
-                tc.Position = glm::vec3(translation[0], translation[1], translation[2]);
-                tc.Rotation = glm::vec3(rotation[0], rotation[1], rotation[2]);
-                tc.Scale = glm::vec3(scale[0], scale[1], scale[2]);
+                
+                // Sanity check to prevent disappearing objects (NaN or Zero Scale)
+                bool isValid = true;
+                
+                // Check NaN
+                if (std::isnan(translation[0]) || std::isnan(translation[1]) || std::isnan(translation[2])) isValid = false;
+                if (std::isnan(rotation[0]) || std::isnan(rotation[1]) || std::isnan(rotation[2])) isValid = false;
+                if (std::isnan(scale[0]) || std::isnan(scale[1]) || std::isnan(scale[2])) isValid = false;
+                
+                // Check Zero Scale (lockout prevention)
+                if (abs(scale[0]) < 0.001f) scale[0] = 0.001f;
+                if (abs(scale[1]) < 0.001f) scale[1] = 0.001f;
+                if (abs(scale[2]) < 0.001f) scale[2] = 0.001f;
+                
+                if (isValid)
+                {
+                    tc.Position = glm::vec3(translation[0], translation[1], translation[2]);
+                    tc.Rotation = glm::vec3(rotation[0], rotation[1], rotation[2]);
+                    tc.Scale = glm::vec3(scale[0], scale[1], scale[2]);
+                }
             }
             else if (m_WasUsingGizmo)
             {
@@ -555,7 +573,7 @@ void EditorLayer::DrawViewportPanel()
             }
         }
         
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && (!m_SelectedEntity || !ImGuizmo::IsOver()))
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && (!m_SelectedEntity || !ImGuizmo::IsOver()) && !ImGui::IsPopupOpen("DeleteConfirmation"))
         {
             ImGui::SetWindowFocus();
             ImVec2 mousePos = ImGui::GetMousePos();
@@ -599,47 +617,34 @@ void EditorLayer::DrawViewportPanel()
     }
     ImGui::End();
     
-    // Delete Popup (drawn outside viewport to avoid clipping)
+    // Delete Popup Logic
     if (m_ShowDeletePopup)
     {
-        ImGui::SetNextWindowPos(ImVec2(m_DeletePopupPos.x, m_DeletePopupPos.y), ImGuiCond_Always);
-        ImGui::SetNextWindowFocus();
+        ImGui::OpenPopup("DeleteConfirmation");
+        m_ShowDeletePopup = false; // Request consumed
+    }
+
+    ImGui::SetNextWindowPos(ImVec2(m_DeletePopupPos.x, m_DeletePopupPos.y), ImGuiCond_Appearing);
+    if (ImGui::BeginPopup("DeleteConfirmation"))
+    {
+        ImGui::Text("Delete Selected?");
+        ImGui::Spacing();
         
-        ImGuiWindowFlags popupFlags = 
-            ImGuiWindowFlags_NoDecoration | 
-            ImGuiWindowFlags_AlwaysAutoResize | 
-            ImGuiWindowFlags_NoSavedSettings |
-            ImGuiWindowFlags_NoMove;
-            
-        if (ImGui::Begin("##DeleteConfirm", nullptr, popupFlags))
+        if (ImGui::Button("OK", ImVec2(120, 0)) || Input::IsKeyPressed(GLFW_KEY_ENTER)) 
         {
-            ImGui::Text("Delete Selected?");
-            ImGui::Spacing();
-            
-            // Confirm with OK button or Enter key
-            if (ImGui::Button("OK", ImVec2(120, 0)) || Input::IsKeyPressed(GLFW_KEY_ENTER)) 
+            if (m_SelectedEntity)
             {
-                if (m_SelectedEntity)
-                {
-                    EditorBridge::SubmitDeleteEntity(m_SelectedEntity);
-                    m_SelectedEntity = Entity();
-                }
-                m_ShowDeletePopup = false;
+                EditorBridge::SubmitDeleteEntity(m_SelectedEntity);
+                m_SelectedEntity = Entity();
             }
-            
-            // Cancel with ESC key or clicking outside
-            if (Input::IsKeyPressed(GLFW_KEY_ESCAPE))
-            {
-                m_ShowDeletePopup = false;
-            }
-            
-            // Close if clicked outside the popup window
-            if (ImGui::IsMouseClicked(0) && !ImGui::IsWindowHovered())
-            {
-                m_ShowDeletePopup = false;
-            }
-            
-            ImGui::End();
+            ImGui::CloseCurrentPopup();
         }
+        
+        if (Input::IsKeyPressed(GLFW_KEY_ESCAPE))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        
+        ImGui::EndPopup();
     }
 }
