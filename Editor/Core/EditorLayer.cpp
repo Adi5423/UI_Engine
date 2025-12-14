@@ -93,6 +93,24 @@ void main()
 
 #include <Core/Input/Input.hpp>
 
+glm::vec2 EditorLayer::WorldToScreen(const glm::vec3& worldPos, const glm::mat4& view, 
+                                      const glm::mat4& proj, const glm::vec2& viewportSize, 
+                                      const glm::vec2& viewportPos)
+{
+    // Transform to clip space
+    glm::vec4 clipPos = proj * view * glm::vec4(worldPos, 1.0f);
+    
+    // Perspective divide
+    if (clipPos.w == 0.0f) return viewportPos; // Avoid division by zero
+    glm::vec3 ndcPos = glm::vec3(clipPos) / clipPos.w;
+    
+    // Convert to screen space
+    float screenX = (ndcPos.x + 1.0f) * 0.5f * viewportSize.x + viewportPos.x;
+    float screenY = (1.0f - ndcPos.y) * 0.5f * viewportSize.y + viewportPos.y;
+    
+    return glm::vec2(screenX, screenY);
+}
+
 void EditorLayer::OnDetach()
 {
     m_ActiveScene.reset();
@@ -127,11 +145,14 @@ void EditorLayer::OnUpdate(float deltaTime)
         {
              if (Input::IsKeyPressed(GLFW_KEY_X))
              {
-                 if (!m_ShowDeletePopup) {
+                 if (!m_ShowDeletePopup && m_SelectedEntity.HasComponent<TransformComponent>()) 
+                 {
                     m_ShowDeletePopup = true;
-                    double mx, my;
-                    Input::GetMousePosition(mx, my);
-                    m_DeletePopupPos = { (float)mx, (float)my };
+                    
+                    // Store object's world position for later screen projection
+                    auto& tc = m_SelectedEntity.GetComponent<TransformComponent>();
+                    m_DeletePopupWorldPos = tc.Position;
+                    m_DeletePopupNeedsPositioning = true;
                  }
              }
              else
@@ -323,8 +344,15 @@ void EditorLayer::DrawInspectorPanel()
 
             ImGui::Text("Position");
             ImGui::SameLine();
-            if (ImGui::IsItemActivated()) { m_TransformEditState.savedTransform = transform; m_TransformEditState.isEditingPosition = true; }
             ImGui::DragFloat3("##Position", &transform.Position.x, 0.1f);
+            
+            // Detect when user starts editing
+            if (ImGui::IsItemActivated())
+            {
+                m_TransformEditState.savedTransform = transform;
+                m_TransformEditState.isEditingPosition = true;
+            }
+            
             if (m_TransformEditState.isEditingPosition)
             {
                 if (ImGui::IsItemDeactivatedAfterEdit() || (ImGui::IsItemActive() && Input::IsKeyPressed(GLFW_KEY_ENTER)))
@@ -336,8 +364,14 @@ void EditorLayer::DrawInspectorPanel()
 
             ImGui::Text("Rotation");
             ImGui::SameLine();
-            if (ImGui::IsItemActivated()) { m_TransformEditState.savedTransform = transform; m_TransformEditState.isEditingRotation = true; }
             ImGui::DragFloat3("##Rotation", &transform.Rotation.x, 0.1f);
+            
+            if (ImGui::IsItemActivated())
+            {
+                m_TransformEditState.savedTransform = transform;
+                m_TransformEditState.isEditingRotation = true;
+            }
+            
             if (m_TransformEditState.isEditingRotation)
             {
                 if (ImGui::IsItemDeactivatedAfterEdit() || (ImGui::IsItemActive() && Input::IsKeyPressed(GLFW_KEY_ENTER)))
@@ -349,8 +383,14 @@ void EditorLayer::DrawInspectorPanel()
 
             ImGui::Text("Scale");
             ImGui::SameLine();
-            if (ImGui::IsItemActivated()) { m_TransformEditState.savedTransform = transform; m_TransformEditState.isEditingScale = true; }
             ImGui::DragFloat3("##Scale", &transform.Scale.x, 0.1f);
+            
+            if (ImGui::IsItemActivated())
+            {
+                m_TransformEditState.savedTransform = transform;
+                m_TransformEditState.isEditingScale = true;
+            }
+            
             if (m_TransformEditState.isEditingScale)
             {
                 if (ImGui::IsItemDeactivatedAfterEdit() || (ImGui::IsItemActive() && Input::IsKeyPressed(GLFW_KEY_ENTER)))
@@ -398,6 +438,33 @@ void EditorLayer::DrawViewportPanel()
         {
             m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        }
+
+        // Calculate delete popup screen position if needed
+        if (m_DeletePopupNeedsPositioning && m_SelectedEntity && m_SelectedEntity.HasComponent<TransformComponent>())
+        {
+            auto& tc = m_SelectedEntity.GetComponent<TransformComponent>();
+            m_DeletePopupPos = WorldToScreen(
+                tc.Position,
+                m_EditorCamera.GetViewMatrix(),
+                m_EditorCamera.GetProjectionMatrix(),
+                m_ViewportSize,
+                glm::vec2(globalImage.x, globalImage.y)
+            );
+            
+            // Clamp to viewport bounds with padding
+            float padding = 10.0f;
+            float popupWidth = 150.0f;  // Approximate popup width
+            float popupHeight = 80.0f;  // Approximate popup height
+            
+            m_DeletePopupPos.x = glm::clamp(m_DeletePopupPos.x, 
+                                            globalImage.x + padding, 
+                                            globalImage.x + m_ViewportSize.x - popupWidth - padding);
+            m_DeletePopupPos.y = glm::clamp(m_DeletePopupPos.y, 
+                                            globalImage.y + padding, 
+                                            globalImage.y + m_ViewportSize.y - popupHeight - padding);
+            
+            m_DeletePopupNeedsPositioning = false;
         }
 
         m_Framebuffer->Bind();
@@ -514,32 +581,50 @@ void EditorLayer::DrawViewportPanel()
                  });
             }
         }
-        
-        if (m_ShowDeletePopup)
-        {
-            ImGui::SetNextWindowPos(ImVec2(m_DeletePopupPos.x, m_DeletePopupPos.y));
-            if (ImGui::Begin("Delete?", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
-            {
-                ImGui::Text("Delete Selected?");
-                if (ImGui::Button("OK") || Input::IsKeyPressed(GLFW_KEY_ENTER)) 
-                {
-                    if (m_SelectedEntity)
-                    {
-                        EditorBridge::SubmitDeleteEntity(m_SelectedEntity);
-                        m_SelectedEntity = Entity();
-                        m_ShowDeletePopup = false;
-                    }
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Cancel"))
-                {
-                    m_ShowDeletePopup = false;
-                }
-                 if (ImGui::IsMouseClicked(0) && !ImGui::IsWindowHovered())
-                    m_ShowDeletePopup = false;
-                ImGui::End();
-            }
-        }
     }
     ImGui::End();
+    
+    // Delete Popup (drawn outside viewport to avoid clipping)
+    if (m_ShowDeletePopup)
+    {
+        ImGui::SetNextWindowPos(ImVec2(m_DeletePopupPos.x, m_DeletePopupPos.y), ImGuiCond_Always);
+        ImGui::SetNextWindowFocus();
+        
+        ImGuiWindowFlags popupFlags = 
+            ImGuiWindowFlags_NoDecoration | 
+            ImGuiWindowFlags_AlwaysAutoResize | 
+            ImGuiWindowFlags_NoSavedSettings |
+            ImGuiWindowFlags_NoMove;
+            
+        if (ImGui::Begin("##DeleteConfirm", nullptr, popupFlags))
+        {
+            ImGui::Text("Delete Selected?");
+            ImGui::Spacing();
+            
+            // Confirm with OK button or Enter key
+            if (ImGui::Button("OK", ImVec2(120, 0)) || Input::IsKeyPressed(GLFW_KEY_ENTER)) 
+            {
+                if (m_SelectedEntity)
+                {
+                    EditorBridge::SubmitDeleteEntity(m_SelectedEntity);
+                    m_SelectedEntity = Entity();
+                }
+                m_ShowDeletePopup = false;
+            }
+            
+            // Cancel with ESC key or clicking outside
+            if (Input::IsKeyPressed(GLFW_KEY_ESCAPE))
+            {
+                m_ShowDeletePopup = false;
+            }
+            
+            // Close if clicked outside the popup window
+            if (ImGui::IsMouseClicked(0) && !ImGui::IsWindowHovered())
+            {
+                m_ShowDeletePopup = false;
+            }
+            
+            ImGui::End();
+        }
+    }
 }
