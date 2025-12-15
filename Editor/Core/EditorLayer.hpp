@@ -62,6 +62,12 @@ private:
     std::string m_PreviousName;
     bool m_IsEditingName = false;
     bool m_WasUsingGizmo = false;
+    int m_GizmoTypeAtStart = -1;
+
+    // Gizmo preview (avoid matrix->euler->matrix feedback during manipulation)
+    bool m_GizmoPreviewActive = false;
+    entt::entity m_GizmoPreviewEntity = entt::null;
+    glm::mat4 m_GizmoPreviewMatrix{ 1.0f };
 
     // Shortcuts state
     bool m_UndoPressedLastFrame = false;
