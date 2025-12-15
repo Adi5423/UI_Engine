@@ -24,18 +24,22 @@ add_library(UICheckEngine SHARED ${ENGINE_SRC}
         "Rendering/Camera/EditorCamera.cpp"
         
 )
-set_target_properties(UICheckEngine PROPERTIES 
-    WINDOWS_EXPORT_ALL_SYMBOLS ON
-    PREFIX ""
-)
+if(WIN32)
+    set_target_properties(UICheckEngine PROPERTIES 
+        WINDOWS_EXPORT_ALL_SYMBOLS ON
+        PREFIX ""
+    )
+endif()
 
 target_include_directories(UICheckEngine PUBLIC
     ${CMAKE_SOURCE_DIR}/Engine
     ${CMAKE_SOURCE_DIR}/vendor
 )
 
+find_package(OpenGL REQUIRED)
+
 target_link_libraries(UICheckEngine PUBLIC
     glad
     glfw
-    opengl32
+    OpenGL::GL
 )

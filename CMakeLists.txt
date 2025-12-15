@@ -9,10 +9,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # ----------- vendor libs -----------
 add_library(glad SHARED vendor/glad/src/glad.c)
 target_include_directories(glad PUBLIC vendor/glad/include)
-set_target_properties(glad PROPERTIES 
-    WINDOWS_EXPORT_ALL_SYMBOLS ON
-    PREFIX ""
-)
+if(WIN32)
+    set_target_properties(glad PROPERTIES 
+        WINDOWS_EXPORT_ALL_SYMBOLS ON
+        PREFIX ""
+    )
+endif()
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -34,10 +36,12 @@ target_include_directories(imgui PUBLIC
     ${IMGUI_DIR}/backends
 )
 target_link_libraries(imgui PUBLIC glad glfw)
-set_target_properties(imgui PROPERTIES 
-    WINDOWS_EXPORT_ALL_SYMBOLS ON
-    PREFIX ""
-)
+if(WIN32)
+    set_target_properties(imgui PROPERTIES 
+        WINDOWS_EXPORT_ALL_SYMBOLS ON
+        PREFIX ""
+    )
+endif()
 
 # ImGuizmo
 set(IMGUIZMO_DIR vendor/ImGuizmo)
@@ -46,10 +50,12 @@ add_library(ImGuizmo SHARED
 )
 target_include_directories(ImGuizmo PUBLIC ${IMGUIZMO_DIR})
 target_link_libraries(ImGuizmo PUBLIC imgui)
-set_target_properties(ImGuizmo PROPERTIES 
-    WINDOWS_EXPORT_ALL_SYMBOLS ON
-    PREFIX ""
-)
+if(WIN32)
+    set_target_properties(ImGuizmo PROPERTIES 
+        WINDOWS_EXPORT_ALL_SYMBOLS ON
+        PREFIX ""
+    )
+endif()
 
 include_directories(
     vendor/glm
