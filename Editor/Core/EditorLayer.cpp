@@ -2,9 +2,14 @@
 #include "EditorBridge.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
+#include <cmath>
+
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
+
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -493,7 +498,10 @@ void EditorLayer::DrawViewportPanel()
         reg.view<TransformComponent, MeshComponent>().each([&](auto entity, TransformComponent& transform, MeshComponent& meshComp)
         {
             if (!meshComp.MeshHandle) return;
-            m_Shader->SetMat4("u_Model", transform.GetMatrix());
+            if (m_GizmoPreviewActive && m_SelectedEntity && m_GizmoPreviewEntity == (entt::entity)entity)
+                m_Shader->SetMat4("u_Model", m_GizmoPreviewMatrix);
+            else
+                m_Shader->SetMat4("u_Model", transform.GetMatrix());
             auto* va = meshComp.MeshHandle->GetVertexArray();
             va->Bind();
             glDrawElements(GL_TRIANGLES, meshComp.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
@@ -508,7 +516,10 @@ void EditorLayer::DrawViewportPanel()
                  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                  glLineWidth(4.0f);
                  m_Shader->SetFloat4("u_Color", glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
-                 m_Shader->SetMat4("u_Model", tc.GetMatrix());
+                 if (m_GizmoPreviewActive)
+                     m_Shader->SetMat4("u_Model", m_GizmoPreviewMatrix);
+                 else
+                     m_Shader->SetMat4("u_Model", tc.GetMatrix());
                  auto* va = mc.MeshHandle->GetVertexArray();
                  va->Bind();
                  glDrawElements(GL_TRIANGLES, mc.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
@@ -529,7 +540,15 @@ void EditorLayer::DrawViewportPanel()
             const glm::mat4& cameraProjection = m_EditorCamera.GetProjectionMatrix();
             glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
             auto& tc = m_SelectedEntity.GetComponent<TransformComponent>();
-            glm::mat4 transform = tc.GetMatrix();
+            if (!m_GizmoPreviewActive || m_GizmoPreviewEntity != m_SelectedEntity.Handle())
+            {
+                m_GizmoPreviewActive = false;
+                m_GizmoPreviewEntity = entt::null;
+                m_GizmoPreviewMatrix = tc.GetMatrix();
+            }
+
+            glm::mat4 transform = m_GizmoPreviewActive ? m_GizmoPreviewMatrix : tc.GetMatrix();
+            glm::mat4 deltaMatrix(1.0f);
 
             bool snap = Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL);
             float snapValue = 0.5f;
@@ -538,36 +557,158 @@ void EditorLayer::DrawViewportPanel()
 
             ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
                 (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
-                nullptr, snap ? snapValues : nullptr);
+                glm::value_ptr(deltaMatrix), snap ? snapValues : nullptr);
 
             if (ImGuizmo::IsUsing())
             {
-                if (!m_WasUsingGizmo) { m_TransformEditState.savedTransform = tc; m_WasUsingGizmo = true; }
-                float translation[3], rotation[3], scale[3];
-                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), translation, rotation, scale);
-                
-                // Sanity check to prevent disappearing objects (NaN or Zero Scale)
-                bool isValid = true;
-                
-                // Check NaN
-                if (std::isnan(translation[0]) || std::isnan(translation[1]) || std::isnan(translation[2])) isValid = false;
-                if (std::isnan(rotation[0]) || std::isnan(rotation[1]) || std::isnan(rotation[2])) isValid = false;
-                if (std::isnan(scale[0]) || std::isnan(scale[1]) || std::isnan(scale[2])) isValid = false;
-                
-                // Check Zero Scale (lockout prevention)
-                if (abs(scale[0]) < 0.001f) scale[0] = 0.001f;
-                if (abs(scale[1]) < 0.001f) scale[1] = 0.001f;
-                if (abs(scale[2]) < 0.001f) scale[2] = 0.001f;
-                
-                if (isValid)
+                if (!m_WasUsingGizmo)
                 {
-                    tc.Position = glm::vec3(translation[0], translation[1], translation[2]);
-                    tc.Rotation = glm::vec3(rotation[0], rotation[1], rotation[2]);
-                    tc.Scale = glm::vec3(scale[0], scale[1], scale[2]);
+                    m_TransformEditState.savedTransform = tc;
+                    m_WasUsingGizmo = true;
+                    m_GizmoTypeAtStart = m_GizmoType;
+                    m_GizmoPreviewActive = true;
+                    m_GizmoPreviewEntity = m_SelectedEntity.Handle();
+                    m_GizmoPreviewMatrix = tc.GetMatrix();
                 }
+
+                // Keep a live matrix for rendering while dragging.
+                m_GizmoPreviewActive = true;
+                m_GizmoPreviewEntity = m_SelectedEntity.Handle();
+                m_GizmoPreviewMatrix = transform;
             }
             else if (m_WasUsingGizmo)
             {
+                // Commit once (avoid per-frame matrix->euler feedback issues)
+                auto WrapAngleDeg = [](float degrees) -> float
+                {
+                    degrees = std::fmod(degrees, 360.0f);
+                    if (degrees > 180.0f) degrees -= 360.0f;
+                    if (degrees < -180.0f) degrees += 360.0f;
+                    return degrees;
+                };
+
+                auto UnwindAngleDeg = [&](float previous, float next) -> float
+                {
+                    float delta = WrapAngleDeg(next - previous);
+                    return previous + delta;
+                };
+
+                glm::mat4 commitMatrix = m_GizmoPreviewActive ? m_GizmoPreviewMatrix : tc.GetMatrix();
+                glm::vec3 commitTranslation = glm::vec3(commitMatrix[3]);
+
+                // Extract scale from matrix columns (lengths). This is stable even when rotated.
+                glm::vec3 col0 = glm::vec3(commitMatrix[0]);
+                glm::vec3 col1 = glm::vec3(commitMatrix[1]);
+                glm::vec3 col2 = glm::vec3(commitMatrix[2]);
+                glm::vec3 commitScale{ glm::length(col0), glm::length(col1), glm::length(col2) };
+                if (std::abs(commitScale.x) < 0.001f) commitScale.x = 0.001f;
+                if (std::abs(commitScale.y) < 0.001f) commitScale.y = 0.001f;
+                if (std::abs(commitScale.z) < 0.001f) commitScale.z = 0.001f;
+
+                // Build an orthonormal rotation matrix by removing scale then Gram-Schmidt.
+                // IMPORTANT: TransformComponent::GetMatrix() composes rotation as Y * X * Z.
+                // So we must extract Euler angles in the same order (YXZ), not glm::eulerAngles() (XYZ).
+                auto ExtractRotationDeg = [&](const glm::vec3& scaleForDivision) -> glm::vec3
+                {
+                    glm::vec3 sx = scaleForDivision;
+                    if (std::abs(sx.x) < 0.001f) sx.x = 0.001f;
+                    if (std::abs(sx.y) < 0.001f) sx.y = 0.001f;
+                    if (std::abs(sx.z) < 0.001f) sx.z = 0.001f;
+
+                    glm::vec3 x = col0 / sx.x;
+                    glm::vec3 y = col1 / sx.y;
+                    glm::vec3 z = col2 / sx.z;
+
+                    x = glm::normalize(x);
+                    y = y - glm::dot(y, x) * x;
+                    y = glm::normalize(y);
+                    z = glm::cross(x, y);
+
+                    glm::mat3 rotM(1.0f);
+                    rotM[0] = x;
+                    rotM[1] = y;
+                    rotM[2] = z;
+
+                    // Rotation matrix elements (row-major names), noting glm is column-major: m[col][row]
+                    const float r00 = rotM[0][0];
+                    const float r01 = rotM[1][0];
+                    const float r02 = rotM[2][0];
+                    const float r10 = rotM[0][1];
+                    const float r11 = rotM[1][1];
+                    const float r12 = rotM[2][1];
+                    const float r20 = rotM[0][2];
+                    const float r21 = rotM[1][2];
+                    const float r22 = rotM[2][2];
+
+                    // Decompose R = Ry(y) * Rx(x) * Rz(z)
+                    // From derivation:
+                    //   r12 = -sin(x)
+                    //   z = atan2(r10, r11)
+                    //   y = atan2(r02, r22)
+                    float sxAngle = -r12;
+                    sxAngle = glm::clamp(sxAngle, -1.0f, 1.0f);
+                    float xRad = std::asin(sxAngle);
+                    float cx = std::cos(xRad);
+
+                    float yRad = 0.0f;
+                    float zRad = 0.0f;
+                    if (std::abs(cx) > 1e-5f)
+                    {
+                        zRad = std::atan2(r10, r11);
+                        yRad = std::atan2(r02, r22);
+                    }
+                    else
+                    {
+                        // Gimbal lock: absorb z into y
+                        zRad = 0.0f;
+                        yRad = std::atan2(-r20, r00);
+                    }
+
+                    return glm::degrees(glm::vec3(xRad, yRad, zRad));
+                };
+
+                const ImGuizmo::OPERATION opAtStart = (ImGuizmo::OPERATION)m_GizmoTypeAtStart;
+
+                // Apply per-operation to avoid changing rotation when only translating, etc.
+                if (opAtStart == ImGuizmo::TRANSLATE)
+                {
+                    tc.Position = commitTranslation;
+                }
+                else if (opAtStart == ImGuizmo::SCALE)
+                {
+                    tc.Position = commitTranslation;
+                    tc.Scale = commitScale;
+                    // Keep rotation unchanged during scale.
+                }
+                else if (opAtStart == ImGuizmo::ROTATE)
+                {
+                    tc.Position = commitTranslation;
+
+                    // Keep scale unchanged during rotate; compute rotation from matrix with scale removed.
+                    const glm::vec3 prevEuler = m_TransformEditState.savedTransform.Rotation;
+                    const glm::vec3 baseScale = m_TransformEditState.savedTransform.Scale;
+                    glm::vec3 rotDeg = ExtractRotationDeg(baseScale);
+
+                    tc.Rotation.x = UnwindAngleDeg(prevEuler.x, rotDeg.x);
+                    tc.Rotation.y = UnwindAngleDeg(prevEuler.y, rotDeg.y);
+                    tc.Rotation.z = UnwindAngleDeg(prevEuler.z, rotDeg.z);
+                }
+                else
+                {
+                    // Fallback: commit everything (shouldn't normally happen)
+                    glm::vec3 rotDeg = ExtractRotationDeg(commitScale);
+                    const glm::vec3 prevEuler = m_TransformEditState.savedTransform.Rotation;
+                    tc.Position = commitTranslation;
+                    tc.Rotation.x = UnwindAngleDeg(prevEuler.x, rotDeg.x);
+                    tc.Rotation.y = UnwindAngleDeg(prevEuler.y, rotDeg.y);
+                    tc.Rotation.z = UnwindAngleDeg(prevEuler.z, rotDeg.z);
+                    tc.Scale = commitScale;
+                }
+
+                m_GizmoPreviewActive = false;
+                m_GizmoPreviewEntity = entt::null;
+                m_GizmoTypeAtStart = -1;
+
                 EditorBridge::SubmitTransformChange(m_SelectedEntity, m_TransformEditState.savedTransform, tc);
                 m_WasUsingGizmo = false;
             }

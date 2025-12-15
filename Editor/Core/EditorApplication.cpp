@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <glm/glm.hpp>
 
 #include "ImGuiLayer.hpp"
@@ -99,6 +100,31 @@ void EditorApplication::RenderDockspace()
     ImGui::Begin("##DockspaceRoot", &m_ShowDockspace, windowFlags);
 
     ImGuiID dockspaceID = ImGui::GetID("MainDockspace");
+
+    // If the docking layout is missing/corrupt (or the ini isn't found), create a sane default layout
+    // so the editor doesn't look "blank".
+    static bool dockBuilt = false;
+    if (!dockBuilt)
+    {
+        dockBuilt = true;
+
+        ImGui::DockBuilderRemoveNode(dockspaceID);
+        ImGui::DockBuilderAddNode(dockspaceID, dockFlags | ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(dockspaceID, viewport->Size);
+
+        ImGuiID dockMain = dockspaceID;
+        ImGuiID dockLeft = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Left, 0.20f, nullptr, &dockMain);
+        ImGuiID dockRight = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Right, 0.25f, nullptr, &dockMain);
+        ImGuiID dockBottom = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Down, 0.30f, nullptr, &dockMain);
+
+        ImGui::DockBuilderDockWindow("Hierarchy", dockLeft);
+        ImGui::DockBuilderDockWindow("Inspector", dockRight);
+        ImGui::DockBuilderDockWindow("Content Browser", dockBottom);
+        ImGui::DockBuilderDockWindow("Viewport", dockMain);
+
+        ImGui::DockBuilderFinish(dockspaceID);
+    }
+
     ImGui::DockSpace(dockspaceID, ImVec2(0, 0), dockFlags);
 
     RenderMenuBar();
