@@ -33,6 +33,9 @@ public:
     uint32_t GetIndexCount() const { return m_IndexCount; }
     PrimitiveType GetType() const { return m_Type; }
 
+    const glm::vec3& GetMinAABB() const { return m_MinAABB; }
+    const glm::vec3& GetMaxAABB() const { return m_MaxAABB; }
+
 private:
     Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
     {
@@ -56,10 +59,30 @@ private:
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
 
         m_VertexArray->SetIndexBuffer(ib);
+
+        // Calculate AABB
+        if (!vertices.empty())
+        {
+            m_MinAABB = vertices[0].Position;
+            m_MaxAABB = vertices[0].Position;
+            for (const auto& v : vertices)
+            {
+                m_MinAABB.x = std::min(m_MinAABB.x, v.Position.x);
+                m_MinAABB.y = std::min(m_MinAABB.y, v.Position.y);
+                m_MinAABB.z = std::min(m_MinAABB.z, v.Position.z);
+
+                m_MaxAABB.x = std::max(m_MaxAABB.x, v.Position.x);
+                m_MaxAABB.y = std::max(m_MaxAABB.y, v.Position.y);
+                m_MaxAABB.z = std::max(m_MaxAABB.z, v.Position.z);
+            }
+        }
     }
 
 private:
     std::unique_ptr<VertexArray> m_VertexArray;
     uint32_t m_IndexCount = 0;
     PrimitiveType m_Type = PrimitiveType::None;
+
+    glm::vec3 m_MinAABB{ 0.0f };
+    glm::vec3 m_MaxAABB{ 0.0f };
 };

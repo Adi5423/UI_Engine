@@ -1,5 +1,6 @@
 #include "Framebuffer.hpp"
 #include <iostream>
+#include <Core/Application.hpp>
 
 Framebuffer::Framebuffer(uint32_t width, uint32_t height)
     : m_Width(width), m_Height(height)
@@ -59,6 +60,14 @@ void Framebuffer::Bind()
 void Framebuffer::Unbind()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Restore viewport to window size
+    if (Application::Get().GetWindow())
+    {
+        uint32_t w = Application::Get().GetWindow()->GetWidth();
+        uint32_t h = Application::Get().GetWindow()->GetHeight();
+        glViewport(0, 0, w, h);
+    }
 }
 
 void Framebuffer::Resize(uint32_t width, uint32_t height)

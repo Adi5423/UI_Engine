@@ -9,6 +9,7 @@
 #include <Core/Commands/CommandHistory.hpp>
 #include <Core/Commands/SceneCommands.hpp>
 #include <Core/Logger.hpp>
+#include <Core/Log.hpp> // Include Log for macros
 
 /**
  * EditorBridge aka "The Wall"
@@ -33,7 +34,7 @@ public:
     // =================================================================================
     static void SubmitTransformChange(Entity entity, const TransformComponent& oldTransform, const TransformComponent& newTransform)
     {
-        if (!s_History) { Logger::Error("[Bridge] History not initialized!"); return; }
+        if (!s_History) { CORE_ERROR("[Bridge] History not initialized!"); return; }
         if (!entity) return;
 
         // Validation: Don't spam commands if nothing changed (floating point epsilon check could be added here)
@@ -44,7 +45,7 @@ public:
             return;
         }
 
-        Logger::Info("[Bridge] Transform Change Submitted for Entity: " + std::to_string((uint32_t)entity.Handle()));
+        CORE_INFO("[Bridge] Transform Change Submitted for Entity: " + std::to_string((uint32_t)entity.Handle()));
 
         auto cmd = std::make_unique<ModifyTransformCommand>(
             GetScene(entity),
@@ -63,7 +64,7 @@ public:
         if (!s_History) return;
         if (!entity) return;
 
-        Logger::Info("[Bridge] Delete Request for Entity: " + std::to_string((uint32_t)entity.Handle()));
+        CORE_INFO("[Bridge] Delete Request for Entity: " + std::to_string((uint32_t)entity.Handle()));
 
         auto cmd = std::make_unique<DeleteEntityCommand>(
             GetScene(entity),
@@ -79,7 +80,7 @@ public:
     {
         if (!s_History || !scene) return;
 
-        Logger::Info("[Bridge] Create Mesh Request: " + name);
+        CORE_INFO("[Bridge] Create Mesh Request: " + name);
 
         auto cmd = std::make_unique<CreateMeshCommand>(
             scene,
@@ -98,7 +99,7 @@ public:
         if (!s_History) return;
         if (oldName == newName) return;
 
-        Logger::Info("[Bridge] Rename Request: " + oldName + " -> " + newName);
+        CORE_INFO("[Bridge] Rename Request: " + oldName + " -> " + newName);
 
         auto cmd = std::make_unique<RenameEntityCommand>(
             GetScene(entity),

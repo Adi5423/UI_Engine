@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <json/json.hpp> // vendor/json/json.hpp
+#include <Core/Log.hpp>
 
 using json = nlohmann::json;
 
@@ -26,7 +27,7 @@ void ThemeSettings::Init()
 
     if (!std::filesystem::exists(path))
     {
-        std::cout << "[Theme] No theme file found. Using default theme.\n";
+        CORE_WARN("[Theme] No theme file found. Using default theme.");
         UseDefaultTheme = true;
         return;
     }
@@ -34,7 +35,7 @@ void ThemeSettings::Init()
     std::ifstream f(path);
     if (!f.is_open())
     {
-        std::cout << "[Theme] Failed open theme file. Using default theme.\n";
+        CORE_WARN("[Theme] Failed open theme file. Using default theme.");
         UseDefaultTheme = true;
         return;
     }
@@ -45,7 +46,7 @@ void ThemeSettings::Init()
     }
     catch (const std::exception& e)
     {
-        std::cout << "[Theme] JSON parse error: " << e.what() << "\n";
+        CORE_ERROR("[Theme] JSON parse error: {0}", e.what());
         UseDefaultTheme = true;
         f.close();
         return;
@@ -141,11 +142,11 @@ void ThemeSettings::SaveThemeToJSON()
     std::ofstream out(path);
     if (!out.is_open())
     {
-        std::cout << "[Theme] Failed to open file for saving: " << path << "\n";
+        CORE_ERROR("[Theme] Failed to open file for saving: {0}", path);
         return;
     }
     out << j.dump(4);
     out.close();
 
-    std::cout << "[Theme] Theme saved to " << path << "\n";
+    CORE_INFO("[Theme] Theme saved to {0}", path);
 }

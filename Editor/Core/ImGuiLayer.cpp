@@ -10,6 +10,7 @@
 #include <backends/imgui_impl_opengl3.h>
 
 #include <iostream>
+#include <Core/Log.hpp>
 
 ImGuiLayer::ImGuiLayer() : Layer("ImGuiLayer") {}
 ImGuiLayer::~ImGuiLayer() {}
@@ -146,7 +147,7 @@ void ImGuiLayer::OnAttach()
 
     m_Enabled = true;
 
-    std::cout << "ImGui initialized.\n";
+    CORE_INFO("ImGui initialized.");
 }
 
 void ImGuiLayer::OnDetach()
