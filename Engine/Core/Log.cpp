@@ -63,15 +63,14 @@ namespace Core {
                   << resetCode << std::endl;
 
         // -- File Output (no colors) --
-        if (Log::s_LogFile.is_open())
-        {
-            Log::s_LogFile << "[" << m_Name << "] " 
-                           << "[" << timeStr.str() << "] "
-                           << levelStr << ": " 
-                           << message 
-                           << std::endl;
-            // Optionally flush if critical? 
-            if (level >= LogLevel::Error) Log::s_LogFile.flush();
-        }
+            if (Log::s_LogFile.is_open())
+            {
+                Log::s_LogFile << "[" << m_Name << "] " 
+                               << "[" << timeStr.str() << "] "
+                               << levelStr << ": " 
+                               << message 
+                               << std::endl;
+                Log::s_LogFile.flush();
+            }
     }
 }

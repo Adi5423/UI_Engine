@@ -14,6 +14,8 @@ public:
     Entity CreateEntity(const std::string& name = "Entity");
     Entity CreateEntityWithUUID(Core::UUID uuid, const std::string& name = "Entity");
     void DestroyEntity(Entity entity);
+
+    void OnUpdate(float ts);
     
     Entity GetEntityByUUID(Core::UUID uuid);
 

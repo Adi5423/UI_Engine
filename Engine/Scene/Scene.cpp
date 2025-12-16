@@ -18,7 +18,7 @@ Entity Scene::CreateEntityWithUUID(Core::UUID uuid, const std::string& name)
     // Add ID Component
     entity.AddComponent<IDComponent>(uuid);
     
-    // Check if TagComponent is needed? 
+    // Check if TagComponent is needed. 
     // SceneAPI adds it manually. 
     // To be safe and compliant with existing SceneAPI, we WON'T add TagComponent here 
     // UNLESS the previous implementation did. 
@@ -40,6 +40,11 @@ Entity Scene::CreateEntityWithUUID(Core::UUID uuid, const std::string& name)
 void Scene::DestroyEntity(Entity entity)
 {
     m_Registry.destroy(entity.Handle());
+}
+
+void Scene::OnUpdate(float ts)
+{
+    // Update scripts, physics, etc. here in the future.
 }
 
 Entity Scene::GetEntityByUUID(Core::UUID uuid)
