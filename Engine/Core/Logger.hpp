@@ -10,7 +10,7 @@
 
 /**
  * Simple logging system for the engine
- * Professional implementation like Unity/Unreal/Godot
+ * Professional implementation like Unity/Unreal/Godot logging system
  */
 class Logger
 {

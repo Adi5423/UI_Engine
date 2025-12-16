@@ -1,0 +1,598 @@
+[
+    {
+        "label": "ConanFile",
+        "importPath": "conans",
+        "description": "conans",
+        "isExtraImport": true,
+        "detail": "conans",
+        "documentation": {}
+    },
+    {
+        "label": "CMake",
+        "importPath": "conans",
+        "description": "conans",
+        "isExtraImport": true,
+        "detail": "conans",
+        "documentation": {}
+    },
+    {
+        "label": "ConanFile",
+        "importPath": "conans",
+        "description": "conans",
+        "isExtraImport": true,
+        "detail": "conans",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "ConanMultiPackager",
+        "importPath": "cpt.packager",
+        "description": "cpt.packager",
+        "isExtraImport": true,
+        "detail": "cpt.packager",
+        "documentation": {}
+    },
+    {
+        "label": "division",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "print_function",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "unicode_literals",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "argparse",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "argparse",
+        "description": "argparse",
+        "detail": "argparse",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "datetime",
+        "description": "datetime",
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
+        "label": "lldb",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "lldb",
+        "description": "lldb",
+        "detail": "lldb",
+        "documentation": {}
+    },
+    {
+        "label": "TestPackageConan",
+        "kind": 6,
+        "importPath": "vendor.entt.conan.test_package.conanfile",
+        "description": "vendor.entt.conan.test_package.conanfile",
+        "peekOfCode": "class TestPackageConan(ConanFile):\n    settings = \"os\", \"compiler\", \"build_type\", \"arch\"\n    generators = \"cmake\"\n    def build(self):\n        cmake = CMake(self)\n        cmake.configure()\n        cmake.build()\n    def test(self):\n        bin_path = os.path.join(\"bin\", \"test_package\")\n        self.run(bin_path, run_environment=True)",
+        "detail": "vendor.entt.conan.test_package.conanfile",
+        "documentation": {}
+    },
+    {
+        "label": "Amalgamation",
+        "kind": 6,
+        "importPath": "vendor.entt.scripts.amalgamate",
+        "description": "vendor.entt.scripts.amalgamate",
+        "peekOfCode": "class Amalgamation(object):\n    # Prepends self.source_path to file_path if needed.\n    def actual_path(self, file_path):\n        if not os.path.isabs(file_path):\n            file_path = os.path.join(self.source_path, file_path)\n        return file_path\n    # Search included file_path in self.include_paths and\n    # in source_dir if specified.\n    def find_included_file(self, file_path, source_dir):\n        search_dirs = self.include_paths[:]",
+        "detail": "vendor.entt.scripts.amalgamate",
+        "documentation": {}
+    },
+    {
+        "label": "TranslationUnit",
+        "kind": 6,
+        "importPath": "vendor.entt.scripts.amalgamate",
+        "description": "vendor.entt.scripts.amalgamate",
+        "peekOfCode": "class TranslationUnit(object):\n    # // C++ comment.\n    cpp_comment_pattern = re.compile(r\"//.*?\\n\")\n    # /* C comment. */\n    c_comment_pattern = re.compile(r\"/\\*.*?\\*/\", re.S)\n    # \"complex \\\"stri\\\\\\ng\\\" value\".\n    string_pattern = re.compile(\"[^']\" r'\".*?(?<=[^\\\\])\"', re.S)\n    # Handle simple include directives. Support for advanced\n    # directives where macros and defines needs to expanded is\n    # not a concern right now.",
+        "detail": "vendor.entt.scripts.amalgamate",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "vendor.entt.scripts.amalgamate",
+        "description": "vendor.entt.scripts.amalgamate",
+        "peekOfCode": "def main():\n    description = \"Amalgamate C source and header files.\"\n    usage = \" \".join([\n        \"amalgamate.py\",\n        \"[-v]\",\n        \"-c path/to/config.json\",\n        \"-s path/to/source/dir\",\n        \"[-p path/to/prologue.(c|h)]\"\n    ])\n    argsparser = argparse.ArgumentParser(",
+        "detail": "vendor.entt.scripts.amalgamate",
+        "documentation": {}
+    },
+    {
+        "label": "EnttConan",
+        "kind": 6,
+        "importPath": "vendor.entt.conanfile",
+        "description": "vendor.entt.conanfile",
+        "peekOfCode": "class EnttConan(ConanFile):\n    name = \"entt\"\n    description = \"Gaming meets modern C++ - a fast and reliable entity-component system (ECS) and much more \"\n    topics = (\"conan,\" \"entt\", \"gaming\", \"entity\", \"ecs\")\n    url = \"https://github.com/skypjack/entt\"\n    homepage = url\n    author = \"Michele Caini <michele.caini@gmail.com>\"\n    license = \"MIT\"\n    exports = [\"LICENSE\"]\n    exports_sources = [\"src/*\"]",
+        "detail": "vendor.entt.conanfile",
+        "documentation": {}
+    },
+    {
+        "label": "ArraySynthBase",
+        "kind": 6,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "class ArraySynthBase(object):\n\t\"\"\"\n\tHelper baseclass aimed to reduce the boilerplate needed for \"array-like\" containers\n\t\"\"\"\n\tdef __init__(self, valobj, internal_dict):\n\t\tself.valobj = valobj\n\tdef bind_to(self, pointer, size):\n\t\tarray_p = pointer.GetType().GetPointeeType().GetArrayType(size).GetPointerType()\n\t\tself.array = pointer.Cast(array_p).Dereference()\n\tdef update(self):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "ImVectorSynth",
+        "kind": 6,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "class ImVectorSynth(ArraySynthBase):\n\tdef update(self):\n\t\tself.size = self.valobj.GetChildMemberWithName(\"Size\").GetValueAsUnsigned()\n\t\tself.capacity = self.valobj.GetChildMemberWithName(\"Capacity\").GetValueAsUnsigned()\n\t\tdata = self.valobj.GetChildMemberWithName(\"Data\")\n\t\tself.bind_to(data, self.size)\n\tdef get_summary(self):\n\t\treturn f\"Size={self.size} Capacity={self.capacity}\"\nclass ImSpanSynth(ArraySynthBase):\n\tdef update(self):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "ImSpanSynth",
+        "kind": 6,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "class ImSpanSynth(ArraySynthBase):\n\tdef update(self):\n\t\tdata = self.valobj.GetChildMemberWithName(\"Data\")\n\t\tend = self.valobj.GetChildMemberWithName(\"DataEnd\")\n\t\telement_size = data.GetType().GetPointeeType().GetByteSize()\n\t\tarray_size = end.GetValueAsUnsigned() - data.GetValueAsUnsigned()\n\t\tself.size = int(array_size / element_size)\n\t\tself.bind_to(data, self.size)\n\tdef get_summary(self):\n\t\treturn f\"Size={self.size}\"",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "ImRectSummary",
+        "kind": 6,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "class ImRectSummary(object):\n\tdef __init__(self, valobj, internal_dict):\n\t\tself.valobj = valobj\n\tdef update(self):\n\t\tpass\n\tdef get_summary(self):\n\t\tmin = self.valobj.GetChildMemberWithName(\"Min\")\n\t\tmax = self.valobj.GetChildMemberWithName(\"Max\")\n\t\tminX = float(min.GetChildMemberWithName(\"x\").GetValue())\n\t\tminY = float(min.GetChildMemberWithName(\"y\").GetValue())",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "ImGuiWindowSummary",
+        "kind": 6,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "class ImGuiWindowSummary(object):\n\tdef __init__(self, valobj, internal_dict):\n\t\tself.valobj = valobj\n\tdef update(self):\n\t\tpass\n\tdef get_summary(self):\n\t\tname = self.valobj.GetChildMemberWithName(\"Name\").GetSummary()\n\t\tactive = self.valobj.GetChildMemberWithName(\"Active\").GetValueAsUnsigned() != 0\n\t\twas_active = self.valobj.GetChildMemberWithName(\"WasActive\").GetValueAsUnsigned() != 0\n\t\thidden = self.valobj.GetChildMemberWithName(\"Hidden\") != 0",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "get_active_enum_flags",
+        "kind": 2,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "def get_active_enum_flags(valobj):\n\tflag_set = set()\n\tenum_name = valobj.GetType().GetName() + \"_\"\n\tenum_type = valobj.GetTarget().FindFirstType(enum_name)\n\tif not enum_type.IsValid():\n\t\treturn flag_set\n\tenum_members = enum_type.GetEnumMembers()\n\tvalue = valobj.GetValueAsUnsigned()\n\tfor i in range(0, enum_members.GetSize()):\n\t\tmember = enum_members.GetTypeEnumMemberAtIndex(i)",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tself.valobj",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tself.valobj = valobj\n\tdef bind_to(self, pointer, size):\n\t\tarray_p = pointer.GetType().GetPointeeType().GetArrayType(size).GetPointerType()\n\t\tself.array = pointer.Cast(array_p).Dereference()\n\tdef update(self):\n\t\tself.array = self.valobj\n\tdef num_children(self, max_children):\n\t\treturn self.array.GetNumChildren(max_children)\n\tdef get_child_index(self, name):\n\t\treturn self.array.GetIndexOfChildWithName(name)",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tarray_p",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tarray_p = pointer.GetType().GetPointeeType().GetArrayType(size).GetPointerType()\n\t\tself.array = pointer.Cast(array_p).Dereference()\n\tdef update(self):\n\t\tself.array = self.valobj\n\tdef num_children(self, max_children):\n\t\treturn self.array.GetNumChildren(max_children)\n\tdef get_child_index(self, name):\n\t\treturn self.array.GetIndexOfChildWithName(name)\n\tdef get_child_at_index(self, index):\n\t\treturn self.array.GetChildAtIndex(index)",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tself.array",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tself.array = pointer.Cast(array_p).Dereference()\n\tdef update(self):\n\t\tself.array = self.valobj\n\tdef num_children(self, max_children):\n\t\treturn self.array.GetNumChildren(max_children)\n\tdef get_child_index(self, name):\n\t\treturn self.array.GetIndexOfChildWithName(name)\n\tdef get_child_at_index(self, index):\n\t\treturn self.array.GetChildAtIndex(index)\n\tdef has_children(self):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tself.array",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tself.array = self.valobj\n\tdef num_children(self, max_children):\n\t\treturn self.array.GetNumChildren(max_children)\n\tdef get_child_index(self, name):\n\t\treturn self.array.GetIndexOfChildWithName(name)\n\tdef get_child_at_index(self, index):\n\t\treturn self.array.GetChildAtIndex(index)\n\tdef has_children(self):\n\t\treturn self.array.MightHaveChildren()\n\tdef get_value(self):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tself.size",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tself.size = self.valobj.GetChildMemberWithName(\"Size\").GetValueAsUnsigned()\n\t\tself.capacity = self.valobj.GetChildMemberWithName(\"Capacity\").GetValueAsUnsigned()\n\t\tdata = self.valobj.GetChildMemberWithName(\"Data\")\n\t\tself.bind_to(data, self.size)\n\tdef get_summary(self):\n\t\treturn f\"Size={self.size} Capacity={self.capacity}\"\nclass ImSpanSynth(ArraySynthBase):\n\tdef update(self):\n\t\tdata = self.valobj.GetChildMemberWithName(\"Data\")\n\t\tend = self.valobj.GetChildMemberWithName(\"DataEnd\")",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tself.capacity",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tself.capacity = self.valobj.GetChildMemberWithName(\"Capacity\").GetValueAsUnsigned()\n\t\tdata = self.valobj.GetChildMemberWithName(\"Data\")\n\t\tself.bind_to(data, self.size)\n\tdef get_summary(self):\n\t\treturn f\"Size={self.size} Capacity={self.capacity}\"\nclass ImSpanSynth(ArraySynthBase):\n\tdef update(self):\n\t\tdata = self.valobj.GetChildMemberWithName(\"Data\")\n\t\tend = self.valobj.GetChildMemberWithName(\"DataEnd\")\n\t\telement_size = data.GetType().GetPointeeType().GetByteSize()",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tdata",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tdata = self.valobj.GetChildMemberWithName(\"Data\")\n\t\tself.bind_to(data, self.size)\n\tdef get_summary(self):\n\t\treturn f\"Size={self.size} Capacity={self.capacity}\"\nclass ImSpanSynth(ArraySynthBase):\n\tdef update(self):\n\t\tdata = self.valobj.GetChildMemberWithName(\"Data\")\n\t\tend = self.valobj.GetChildMemberWithName(\"DataEnd\")\n\t\telement_size = data.GetType().GetPointeeType().GetByteSize()\n\t\tarray_size = end.GetValueAsUnsigned() - data.GetValueAsUnsigned()",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tdata",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tdata = self.valobj.GetChildMemberWithName(\"Data\")\n\t\tend = self.valobj.GetChildMemberWithName(\"DataEnd\")\n\t\telement_size = data.GetType().GetPointeeType().GetByteSize()\n\t\tarray_size = end.GetValueAsUnsigned() - data.GetValueAsUnsigned()\n\t\tself.size = int(array_size / element_size)\n\t\tself.bind_to(data, self.size)\n\tdef get_summary(self):\n\t\treturn f\"Size={self.size}\"\nclass ImRectSummary(object):\n\tdef __init__(self, valobj, internal_dict):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tend",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tend = self.valobj.GetChildMemberWithName(\"DataEnd\")\n\t\telement_size = data.GetType().GetPointeeType().GetByteSize()\n\t\tarray_size = end.GetValueAsUnsigned() - data.GetValueAsUnsigned()\n\t\tself.size = int(array_size / element_size)\n\t\tself.bind_to(data, self.size)\n\tdef get_summary(self):\n\t\treturn f\"Size={self.size}\"\nclass ImRectSummary(object):\n\tdef __init__(self, valobj, internal_dict):\n\t\tself.valobj = valobj",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\telement_size",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\telement_size = data.GetType().GetPointeeType().GetByteSize()\n\t\tarray_size = end.GetValueAsUnsigned() - data.GetValueAsUnsigned()\n\t\tself.size = int(array_size / element_size)\n\t\tself.bind_to(data, self.size)\n\tdef get_summary(self):\n\t\treturn f\"Size={self.size}\"\nclass ImRectSummary(object):\n\tdef __init__(self, valobj, internal_dict):\n\t\tself.valobj = valobj\n\tdef update(self):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tarray_size",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tarray_size = end.GetValueAsUnsigned() - data.GetValueAsUnsigned()\n\t\tself.size = int(array_size / element_size)\n\t\tself.bind_to(data, self.size)\n\tdef get_summary(self):\n\t\treturn f\"Size={self.size}\"\nclass ImRectSummary(object):\n\tdef __init__(self, valobj, internal_dict):\n\t\tself.valobj = valobj\n\tdef update(self):\n\t\tpass",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tself.size",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tself.size = int(array_size / element_size)\n\t\tself.bind_to(data, self.size)\n\tdef get_summary(self):\n\t\treturn f\"Size={self.size}\"\nclass ImRectSummary(object):\n\tdef __init__(self, valobj, internal_dict):\n\t\tself.valobj = valobj\n\tdef update(self):\n\t\tpass\n\tdef get_summary(self):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tself.valobj",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tself.valobj = valobj\n\tdef update(self):\n\t\tpass\n\tdef get_summary(self):\n\t\tmin = self.valobj.GetChildMemberWithName(\"Min\")\n\t\tmax = self.valobj.GetChildMemberWithName(\"Max\")\n\t\tminX = float(min.GetChildMemberWithName(\"x\").GetValue())\n\t\tminY = float(min.GetChildMemberWithName(\"y\").GetValue())\n\t\tmaxX = float(max.GetChildMemberWithName(\"x\").GetValue())\n\t\tmaxY = float(max.GetChildMemberWithName(\"y\").GetValue())",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tmin",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tmin = self.valobj.GetChildMemberWithName(\"Min\")\n\t\tmax = self.valobj.GetChildMemberWithName(\"Max\")\n\t\tminX = float(min.GetChildMemberWithName(\"x\").GetValue())\n\t\tminY = float(min.GetChildMemberWithName(\"y\").GetValue())\n\t\tmaxX = float(max.GetChildMemberWithName(\"x\").GetValue())\n\t\tmaxY = float(max.GetChildMemberWithName(\"y\").GetValue())\n\t\treturn f\"Min=({minX}, {minY}) Max=({maxX}, {maxY}) Size=({maxX - minX}, {maxY - minY})\"\ndef get_active_enum_flags(valobj):\n\tflag_set = set()\n\tenum_name = valobj.GetType().GetName() + \"_\"",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tmax",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tmax = self.valobj.GetChildMemberWithName(\"Max\")\n\t\tminX = float(min.GetChildMemberWithName(\"x\").GetValue())\n\t\tminY = float(min.GetChildMemberWithName(\"y\").GetValue())\n\t\tmaxX = float(max.GetChildMemberWithName(\"x\").GetValue())\n\t\tmaxY = float(max.GetChildMemberWithName(\"y\").GetValue())\n\t\treturn f\"Min=({minX}, {minY}) Max=({maxX}, {maxY}) Size=({maxX - minX}, {maxY - minY})\"\ndef get_active_enum_flags(valobj):\n\tflag_set = set()\n\tenum_name = valobj.GetType().GetName() + \"_\"\n\tenum_type = valobj.GetTarget().FindFirstType(enum_name)",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tminX",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tminX = float(min.GetChildMemberWithName(\"x\").GetValue())\n\t\tminY = float(min.GetChildMemberWithName(\"y\").GetValue())\n\t\tmaxX = float(max.GetChildMemberWithName(\"x\").GetValue())\n\t\tmaxY = float(max.GetChildMemberWithName(\"y\").GetValue())\n\t\treturn f\"Min=({minX}, {minY}) Max=({maxX}, {maxY}) Size=({maxX - minX}, {maxY - minY})\"\ndef get_active_enum_flags(valobj):\n\tflag_set = set()\n\tenum_name = valobj.GetType().GetName() + \"_\"\n\tenum_type = valobj.GetTarget().FindFirstType(enum_name)\n\tif not enum_type.IsValid():",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tminY",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tminY = float(min.GetChildMemberWithName(\"y\").GetValue())\n\t\tmaxX = float(max.GetChildMemberWithName(\"x\").GetValue())\n\t\tmaxY = float(max.GetChildMemberWithName(\"y\").GetValue())\n\t\treturn f\"Min=({minX}, {minY}) Max=({maxX}, {maxY}) Size=({maxX - minX}, {maxY - minY})\"\ndef get_active_enum_flags(valobj):\n\tflag_set = set()\n\tenum_name = valobj.GetType().GetName() + \"_\"\n\tenum_type = valobj.GetTarget().FindFirstType(enum_name)\n\tif not enum_type.IsValid():\n\t\treturn flag_set",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tmaxX",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tmaxX = float(max.GetChildMemberWithName(\"x\").GetValue())\n\t\tmaxY = float(max.GetChildMemberWithName(\"y\").GetValue())\n\t\treturn f\"Min=({minX}, {minY}) Max=({maxX}, {maxY}) Size=({maxX - minX}, {maxY - minY})\"\ndef get_active_enum_flags(valobj):\n\tflag_set = set()\n\tenum_name = valobj.GetType().GetName() + \"_\"\n\tenum_type = valobj.GetTarget().FindFirstType(enum_name)\n\tif not enum_type.IsValid():\n\t\treturn flag_set\n\tenum_members = enum_type.GetEnumMembers()",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tmaxY",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tmaxY = float(max.GetChildMemberWithName(\"y\").GetValue())\n\t\treturn f\"Min=({minX}, {minY}) Max=({maxX}, {maxY}) Size=({maxX - minX}, {maxY - minY})\"\ndef get_active_enum_flags(valobj):\n\tflag_set = set()\n\tenum_name = valobj.GetType().GetName() + \"_\"\n\tenum_type = valobj.GetTarget().FindFirstType(enum_name)\n\tif not enum_type.IsValid():\n\t\treturn flag_set\n\tenum_members = enum_type.GetEnumMembers()\n\tvalue = valobj.GetValueAsUnsigned()",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\tflag_set",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\tflag_set = set()\n\tenum_name = valobj.GetType().GetName() + \"_\"\n\tenum_type = valobj.GetTarget().FindFirstType(enum_name)\n\tif not enum_type.IsValid():\n\t\treturn flag_set\n\tenum_members = enum_type.GetEnumMembers()\n\tvalue = valobj.GetValueAsUnsigned()\n\tfor i in range(0, enum_members.GetSize()):\n\t\tmember = enum_members.GetTypeEnumMemberAtIndex(i)\n\t\tif value & member.GetValueAsUnsigned():",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\tenum_name",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\tenum_name = valobj.GetType().GetName() + \"_\"\n\tenum_type = valobj.GetTarget().FindFirstType(enum_name)\n\tif not enum_type.IsValid():\n\t\treturn flag_set\n\tenum_members = enum_type.GetEnumMembers()\n\tvalue = valobj.GetValueAsUnsigned()\n\tfor i in range(0, enum_members.GetSize()):\n\t\tmember = enum_members.GetTypeEnumMemberAtIndex(i)\n\t\tif value & member.GetValueAsUnsigned():\n\t\t\tflag_set.add(member.GetName().removeprefix(enum_name))",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\tenum_type",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\tenum_type = valobj.GetTarget().FindFirstType(enum_name)\n\tif not enum_type.IsValid():\n\t\treturn flag_set\n\tenum_members = enum_type.GetEnumMembers()\n\tvalue = valobj.GetValueAsUnsigned()\n\tfor i in range(0, enum_members.GetSize()):\n\t\tmember = enum_members.GetTypeEnumMemberAtIndex(i)\n\t\tif value & member.GetValueAsUnsigned():\n\t\t\tflag_set.add(member.GetName().removeprefix(enum_name))\n\treturn flag_set",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\tenum_members",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\tenum_members = enum_type.GetEnumMembers()\n\tvalue = valobj.GetValueAsUnsigned()\n\tfor i in range(0, enum_members.GetSize()):\n\t\tmember = enum_members.GetTypeEnumMemberAtIndex(i)\n\t\tif value & member.GetValueAsUnsigned():\n\t\t\tflag_set.add(member.GetName().removeprefix(enum_name))\n\treturn flag_set\nclass ImGuiWindowSummary(object):\n\tdef __init__(self, valobj, internal_dict):\n\t\tself.valobj = valobj",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\tvalue",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\tvalue = valobj.GetValueAsUnsigned()\n\tfor i in range(0, enum_members.GetSize()):\n\t\tmember = enum_members.GetTypeEnumMemberAtIndex(i)\n\t\tif value & member.GetValueAsUnsigned():\n\t\t\tflag_set.add(member.GetName().removeprefix(enum_name))\n\treturn flag_set\nclass ImGuiWindowSummary(object):\n\tdef __init__(self, valobj, internal_dict):\n\t\tself.valobj = valobj\n\tdef update(self):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tmember",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tmember = enum_members.GetTypeEnumMemberAtIndex(i)\n\t\tif value & member.GetValueAsUnsigned():\n\t\t\tflag_set.add(member.GetName().removeprefix(enum_name))\n\treturn flag_set\nclass ImGuiWindowSummary(object):\n\tdef __init__(self, valobj, internal_dict):\n\t\tself.valobj = valobj\n\tdef update(self):\n\t\tpass\n\tdef get_summary(self):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tself.valobj",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tself.valobj = valobj\n\tdef update(self):\n\t\tpass\n\tdef get_summary(self):\n\t\tname = self.valobj.GetChildMemberWithName(\"Name\").GetSummary()\n\t\tactive = self.valobj.GetChildMemberWithName(\"Active\").GetValueAsUnsigned() != 0\n\t\twas_active = self.valobj.GetChildMemberWithName(\"WasActive\").GetValueAsUnsigned() != 0\n\t\thidden = self.valobj.GetChildMemberWithName(\"Hidden\") != 0\n\t\tflags = get_active_enum_flags(self.valobj.GetChildMemberWithName(\"Flags\"))\n\t\tactive = 1 if  active or was_active else 0",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tname",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tname = self.valobj.GetChildMemberWithName(\"Name\").GetSummary()\n\t\tactive = self.valobj.GetChildMemberWithName(\"Active\").GetValueAsUnsigned() != 0\n\t\twas_active = self.valobj.GetChildMemberWithName(\"WasActive\").GetValueAsUnsigned() != 0\n\t\thidden = self.valobj.GetChildMemberWithName(\"Hidden\") != 0\n\t\tflags = get_active_enum_flags(self.valobj.GetChildMemberWithName(\"Flags\"))\n\t\tactive = 1 if  active or was_active else 0\n\t\tchild = 1 if \"ChildWindow\" in flags else 0\n\t\tpopup = 1 if \"Popup\" in flags else 0\n\t\thidden = 1 if hidden else 0\n\t\treturn f\"Name {name} Active {active} Child {child} Popup {popup} Hidden {hidden}\"",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tactive",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tactive = self.valobj.GetChildMemberWithName(\"Active\").GetValueAsUnsigned() != 0\n\t\twas_active = self.valobj.GetChildMemberWithName(\"WasActive\").GetValueAsUnsigned() != 0\n\t\thidden = self.valobj.GetChildMemberWithName(\"Hidden\") != 0\n\t\tflags = get_active_enum_flags(self.valobj.GetChildMemberWithName(\"Flags\"))\n\t\tactive = 1 if  active or was_active else 0\n\t\tchild = 1 if \"ChildWindow\" in flags else 0\n\t\tpopup = 1 if \"Popup\" in flags else 0\n\t\thidden = 1 if hidden else 0\n\t\treturn f\"Name {name} Active {active} Child {child} Popup {popup} Hidden {hidden}\"\ndef __lldb_init_module(debugger, internal_dict):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\twas_active",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\twas_active = self.valobj.GetChildMemberWithName(\"WasActive\").GetValueAsUnsigned() != 0\n\t\thidden = self.valobj.GetChildMemberWithName(\"Hidden\") != 0\n\t\tflags = get_active_enum_flags(self.valobj.GetChildMemberWithName(\"Flags\"))\n\t\tactive = 1 if  active or was_active else 0\n\t\tchild = 1 if \"ChildWindow\" in flags else 0\n\t\tpopup = 1 if \"Popup\" in flags else 0\n\t\thidden = 1 if hidden else 0\n\t\treturn f\"Name {name} Active {active} Child {child} Popup {popup} Hidden {hidden}\"\ndef __lldb_init_module(debugger, internal_dict):\n\t\"\"\"",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\thidden",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\thidden = self.valobj.GetChildMemberWithName(\"Hidden\") != 0\n\t\tflags = get_active_enum_flags(self.valobj.GetChildMemberWithName(\"Flags\"))\n\t\tactive = 1 if  active or was_active else 0\n\t\tchild = 1 if \"ChildWindow\" in flags else 0\n\t\tpopup = 1 if \"Popup\" in flags else 0\n\t\thidden = 1 if hidden else 0\n\t\treturn f\"Name {name} Active {active} Child {child} Popup {popup} Hidden {hidden}\"\ndef __lldb_init_module(debugger, internal_dict):\n\t\"\"\"\n\tThis function will be automatically called by LLDB when the module is loaded, here",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tflags",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tflags = get_active_enum_flags(self.valobj.GetChildMemberWithName(\"Flags\"))\n\t\tactive = 1 if  active or was_active else 0\n\t\tchild = 1 if \"ChildWindow\" in flags else 0\n\t\tpopup = 1 if \"Popup\" in flags else 0\n\t\thidden = 1 if hidden else 0\n\t\treturn f\"Name {name} Active {active} Child {child} Popup {popup} Hidden {hidden}\"\ndef __lldb_init_module(debugger, internal_dict):\n\t\"\"\"\n\tThis function will be automatically called by LLDB when the module is loaded, here\n\twe register the various synthetics/summaries we have build before",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tactive",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tactive = 1 if  active or was_active else 0\n\t\tchild = 1 if \"ChildWindow\" in flags else 0\n\t\tpopup = 1 if \"Popup\" in flags else 0\n\t\thidden = 1 if hidden else 0\n\t\treturn f\"Name {name} Active {active} Child {child} Popup {popup} Hidden {hidden}\"\ndef __lldb_init_module(debugger, internal_dict):\n\t\"\"\"\n\tThis function will be automatically called by LLDB when the module is loaded, here\n\twe register the various synthetics/summaries we have build before\n\t\"\"\"",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tchild",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tchild = 1 if \"ChildWindow\" in flags else 0\n\t\tpopup = 1 if \"Popup\" in flags else 0\n\t\thidden = 1 if hidden else 0\n\t\treturn f\"Name {name} Active {active} Child {child} Popup {popup} Hidden {hidden}\"\ndef __lldb_init_module(debugger, internal_dict):\n\t\"\"\"\n\tThis function will be automatically called by LLDB when the module is loaded, here\n\twe register the various synthetics/summaries we have build before\n\t\"\"\"\n\tcategory_name = \"imgui\"",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tpopup",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tpopup = 1 if \"Popup\" in flags else 0\n\t\thidden = 1 if hidden else 0\n\t\treturn f\"Name {name} Active {active} Child {child} Popup {popup} Hidden {hidden}\"\ndef __lldb_init_module(debugger, internal_dict):\n\t\"\"\"\n\tThis function will be automatically called by LLDB when the module is loaded, here\n\twe register the various synthetics/summaries we have build before\n\t\"\"\"\n\tcategory_name = \"imgui\"\n\tcategory = debugger.GetCategory(category_name)",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\thidden",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\thidden = 1 if hidden else 0\n\t\treturn f\"Name {name} Active {active} Child {child} Popup {popup} Hidden {hidden}\"\ndef __lldb_init_module(debugger, internal_dict):\n\t\"\"\"\n\tThis function will be automatically called by LLDB when the module is loaded, here\n\twe register the various synthetics/summaries we have build before\n\t\"\"\"\n\tcategory_name = \"imgui\"\n\tcategory = debugger.GetCategory(category_name)\n\t# Make sure we don't accidentally keep accumulating languages or override the user's",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\tcategory_name",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\tcategory_name = \"imgui\"\n\tcategory = debugger.GetCategory(category_name)\n\t# Make sure we don't accidentally keep accumulating languages or override the user's\n\t# category enablement in Xcode, where lldb-rpc-server loads this file once for eac\n\t# debugging session\n\tif not category.IsValid():\n\t\tcategory = debugger.CreateCategory(category_name)\n\t\tcategory.AddLanguage(lldb.eLanguageTypeC_plus_plus)\n\t\tcategory.SetEnabled(True)\n\tdef add_summary(typename, impl):",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\tcategory",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\tcategory = debugger.GetCategory(category_name)\n\t# Make sure we don't accidentally keep accumulating languages or override the user's\n\t# category enablement in Xcode, where lldb-rpc-server loads this file once for eac\n\t# debugging session\n\tif not category.IsValid():\n\t\tcategory = debugger.CreateCategory(category_name)\n\t\tcategory.AddLanguage(lldb.eLanguageTypeC_plus_plus)\n\t\tcategory.SetEnabled(True)\n\tdef add_summary(typename, impl):\n\t\tsummary = None",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tcategory",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tcategory = debugger.CreateCategory(category_name)\n\t\tcategory.AddLanguage(lldb.eLanguageTypeC_plus_plus)\n\t\tcategory.SetEnabled(True)\n\tdef add_summary(typename, impl):\n\t\tsummary = None\n\t\tif isinstance(impl, str):\n\t\t\tsummary = lldb.SBTypeSummary.CreateWithSummaryString(impl)\n\t\t\tsummary.SetOptions(lldb.eTypeOptionCascade)\n\t\telse:\n\t\t\t# Unfortunately programmatic summary string generation is an entirely different codepath",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tsummary",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tsummary = None\n\t\tif isinstance(impl, str):\n\t\t\tsummary = lldb.SBTypeSummary.CreateWithSummaryString(impl)\n\t\t\tsummary.SetOptions(lldb.eTypeOptionCascade)\n\t\telse:\n\t\t\t# Unfortunately programmatic summary string generation is an entirely different codepath\n\t\t\t# in LLDB. Register a convenient trampoline function which makes it look like it's part\n\t\t\t# of the SyntheticChildrenProvider contract\n\t\t\tsummary = lldb.SBTypeSummary.CreateWithScriptCode(f'''\n\t\t\t\tsynth = {impl.__module__}.{impl.__qualname__}(valobj.GetNonSyntheticValue(), internal_dict)",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\t\tsummary",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\t\tsummary = lldb.SBTypeSummary.CreateWithSummaryString(impl)\n\t\t\tsummary.SetOptions(lldb.eTypeOptionCascade)\n\t\telse:\n\t\t\t# Unfortunately programmatic summary string generation is an entirely different codepath\n\t\t\t# in LLDB. Register a convenient trampoline function which makes it look like it's part\n\t\t\t# of the SyntheticChildrenProvider contract\n\t\t\tsummary = lldb.SBTypeSummary.CreateWithScriptCode(f'''\n\t\t\t\tsynth = {impl.__module__}.{impl.__qualname__}(valobj.GetNonSyntheticValue(), internal_dict)\n\t\t\t\tsynth.update()\n\t\t\t\treturn synth.get_summary()",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\t\tsummary",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\t\tsummary = lldb.SBTypeSummary.CreateWithScriptCode(f'''\n\t\t\t\tsynth = {impl.__module__}.{impl.__qualname__}(valobj.GetNonSyntheticValue(), internal_dict)\n\t\t\t\tsynth.update()\n\t\t\t\treturn synth.get_summary()\n\t\t\t''')\n\t\t\tsummary.SetOptions(lldb.eTypeOptionCascade | lldb.eTypeOptionFrontEndWantsDereference)\n\t\tcategory.AddTypeSummary(lldb.SBTypeNameSpecifier(typename, True), summary)\n\tdef add_synthetic(typename, impl):\n\t\tadd_summary(typename, impl)\n\t\tsynthetic = lldb.SBTypeSynthetic.CreateWithClassName(f\"{impl.__module__}.{impl.__qualname__}\")",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\t\t\tsynth",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\t\t\tsynth = {impl.__module__}.{impl.__qualname__}(valobj.GetNonSyntheticValue(), internal_dict)\n\t\t\t\tsynth.update()\n\t\t\t\treturn synth.get_summary()\n\t\t\t''')\n\t\t\tsummary.SetOptions(lldb.eTypeOptionCascade | lldb.eTypeOptionFrontEndWantsDereference)\n\t\tcategory.AddTypeSummary(lldb.SBTypeNameSpecifier(typename, True), summary)\n\tdef add_synthetic(typename, impl):\n\t\tadd_summary(typename, impl)\n\t\tsynthetic = lldb.SBTypeSynthetic.CreateWithClassName(f\"{impl.__module__}.{impl.__qualname__}\")\n\t\tsynthetic.SetOptions(lldb.eTypeOptionCascade | lldb.eTypeOptionFrontEndWantsDereference)",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    },
+    {
+        "label": "\t\tsynthetic",
+        "kind": 5,
+        "importPath": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "description": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "peekOfCode": "\t\tsynthetic = lldb.SBTypeSynthetic.CreateWithClassName(f\"{impl.__module__}.{impl.__qualname__}\")\n\t\tsynthetic.SetOptions(lldb.eTypeOptionCascade | lldb.eTypeOptionFrontEndWantsDereference)\n\t\tcategory.AddTypeSynthetic(lldb.SBTypeNameSpecifier(typename, True), synthetic)\n\tadd_synthetic(\"^ImVector<.+>$\", ImVectorSynth)\n\tadd_synthetic(\"^ImSpan<.+>$\", ImSpanSynth)\n\tadd_summary(\"^ImVec2$\", \"x=${var.x} y=${var.y}\")\n\tadd_summary(\"^ImVec4$\", \"x=${var.x} y=${var.y} z=${var.z} w=${var.w}\")\n\tadd_summary(\"^ImRect$\", ImRectSummary)\n\tadd_summary(\"^ImGuiWindow$\", ImGuiWindowSummary)",
+        "detail": "vendor.imgui.misc.debuggers.imgui_lldb",
+        "documentation": {}
+    }
+]

@@ -407,6 +407,11 @@ void EditorLayer::DrawInspectorPanel()
             ImGui::Text("Scale");
             ImGui::SameLine();
             ImGui::DragFloat3("##Scale", &transform.Scale.x, 0.1f);
+
+            // Prevent scaling to zero/negative via inspector
+            if (transform.Scale.x < 0.001f) transform.Scale.x = 0.001f;
+            if (transform.Scale.y < 0.001f) transform.Scale.y = 0.001f;
+            if (transform.Scale.z < 0.001f) transform.Scale.z = 0.001f;
             
             if (ImGui::IsItemActivated())
             {
@@ -570,6 +575,12 @@ void EditorLayer::DrawViewportPanel()
 
                 tc.Position = translation;
                 tc.Rotation = glm::degrees(glm::eulerAngles(rotation));
+                
+                // Prevent scaling to zero/negative
+                if (scale.x < 0.001f) scale.x = 0.001f;
+                if (scale.y < 0.001f) scale.y = 0.001f;
+                if (scale.z < 0.001f) scale.z = 0.001f;
+                
                 tc.Scale = scale;
             }
             else if (m_WasUsingGizmo)

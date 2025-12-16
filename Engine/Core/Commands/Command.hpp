@@ -5,7 +5,7 @@
 
 /**
  * Base interface for all commands in the engine.
- * Implements the Command Pattern used in Unity, Unreal, Godot.
+ * Implements the Command Pattern used in Unity, Unreal, Godot like engines
  */
 class ICommand
 {
