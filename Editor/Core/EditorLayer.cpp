@@ -501,10 +501,7 @@ void EditorLayer::DrawViewportPanel()
         reg.view<TransformComponent, MeshComponent>().each([&](auto entity, TransformComponent& transform, MeshComponent& meshComp)
         {
             if (!meshComp.MeshHandle) return;
-            if (m_GizmoPreviewActive && m_SelectedEntity && m_GizmoPreviewEntity == (entt::entity)entity)
-                m_Shader->SetMat4("u_Model", m_GizmoPreviewMatrix);
-            else
-                m_Shader->SetMat4("u_Model", transform.GetMatrix());
+            m_Shader->SetMat4("u_Model", transform.GetMatrix());
             auto* va = meshComp.MeshHandle->GetVertexArray();
             va->Bind();
             glDrawElements(GL_TRIANGLES, meshComp.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
@@ -519,10 +516,8 @@ void EditorLayer::DrawViewportPanel()
                  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                  glLineWidth(4.0f);
                  m_Shader->SetFloat4("u_Color", glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
-                 if (m_GizmoPreviewActive)
-                     m_Shader->SetMat4("u_Model", m_GizmoPreviewMatrix);
-                 else
-                     m_Shader->SetMat4("u_Model", tc.GetMatrix());
+                 m_Shader->SetFloat4("u_Color", glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
+                 m_Shader->SetMat4("u_Model", tc.GetMatrix());
                  auto* va = mc.MeshHandle->GetVertexArray();
                  va->Bind();
                  glDrawElements(GL_TRIANGLES, mc.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
@@ -543,14 +538,8 @@ void EditorLayer::DrawViewportPanel()
             const glm::mat4& cameraProjection = m_EditorCamera.GetProjectionMatrix();
             glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
             auto& tc = m_SelectedEntity.GetComponent<TransformComponent>();
-            if (!m_GizmoPreviewActive || m_GizmoPreviewEntity != m_SelectedEntity.Handle())
-            {
-                m_GizmoPreviewActive = false;
-                m_GizmoPreviewEntity = entt::null;
-                m_GizmoPreviewMatrix = tc.GetMatrix();
-            }
-
-            glm::mat4 transform = m_GizmoPreviewActive ? m_GizmoPreviewMatrix : tc.GetMatrix();
+            // Disable preview accumulation - work directly on component
+            glm::mat4 transform = tc.GetMatrix();
             glm::mat4 deltaMatrix(1.0f);
 
             bool snap = Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL);
@@ -569,20 +558,9 @@ void EditorLayer::DrawViewportPanel()
                     m_TransformEditState.savedTransform = tc;
                     m_WasUsingGizmo = true;
                     m_GizmoTypeAtStart = m_GizmoType;
-                    m_GizmoPreviewActive = true;
-                    m_GizmoPreviewEntity = m_SelectedEntity.Handle();
-                    m_GizmoPreviewMatrix = tc.GetMatrix();
                 }
 
-                // Keep a live matrix for rendering while dragging.
-                m_GizmoPreviewActive = true;
-                m_GizmoPreviewEntity = m_SelectedEntity.Handle();
-                m_GizmoPreviewMatrix = transform;
-            }
-            else if (m_WasUsingGizmo)
-            {
-                // Commit once (avoid per-frame matrix->euler feedback issues)
-                // Use GLM decomposition for consistency with TransformComponent's new quaternion logic
+                // LIVE UPDATE: Decompose immediately to support inspector updates
                 glm::vec3 scale;
                 glm::quat rotation;
                 glm::vec3 translation;
@@ -593,11 +571,11 @@ void EditorLayer::DrawViewportPanel()
                 tc.Position = translation;
                 tc.Rotation = glm::degrees(glm::eulerAngles(rotation));
                 tc.Scale = scale;
-
-                m_GizmoPreviewActive = false;
-                m_GizmoPreviewEntity = entt::null;
+            }
+            else if (m_WasUsingGizmo)
+            {
+                // Commit the final state (which is already in 'tc') to history
                 m_GizmoTypeAtStart = -1;
-
                 EditorBridge::SubmitTransformChange(m_SelectedEntity, m_TransformEditState.savedTransform, tc);
                 m_WasUsingGizmo = false;
             }
