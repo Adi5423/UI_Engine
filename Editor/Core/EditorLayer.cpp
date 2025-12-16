@@ -68,27 +68,8 @@ void EditorLayer::OnAttach()
         m_ActiveScene = std::make_unique<Scene>();
         SceneAPI::CreateDefaultScene(*m_ActiveScene);
     }
-    m_Framebuffer = std::make_unique<Framebuffer>(1280, 720);
-    std::string vs = R"(
-#version 450 core
-layout(location = 0) in vec3 aPos;
-uniform mat4 u_Model;
-uniform mat4 u_ViewProj;
-void main()
-{
-    gl_Position = u_ViewProj * u_Model * vec4(aPos, 1.0);
-}
-)";
-    std::string fs = R"(
-#version 450 core
-out vec4 FragColor;
-uniform vec4 u_Color;
-void main()
-{
-    FragColor = u_Color;
-}
-)";
-    m_Shader = std::make_unique<Shader>(vs, fs);
+    m_SceneRenderer = std::make_shared<SceneRenderer>();
+    m_SceneRenderer->Init();
     Renderer::Init();
     m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
 }
@@ -118,8 +99,7 @@ glm::vec2 EditorLayer::WorldToScreen(const glm::vec3& worldPos, const glm::mat4&
 void EditorLayer::OnDetach()
 {
     m_ActiveScene.reset();
-    m_Framebuffer.reset();
-    m_Shader.reset();
+    m_SceneRenderer.reset();
 }
 
 void EditorLayer::OnUpdate(float deltaTime)
@@ -462,9 +442,9 @@ void EditorLayer::DrawViewportPanel()
         ImGui::Text("VP Bounds: X=%f Y=%f  W=%f H=%f", globalImage.x, globalImage.y, m_ViewportSize.x, m_ViewportSize.y);
 
         if ((uint32_t)m_ViewportSize.x > 0 && (uint32_t)m_ViewportSize.y > 0 &&
-            (m_Framebuffer->GetWidth() != (uint32_t)m_ViewportSize.x || m_Framebuffer->GetHeight() != (uint32_t)m_ViewportSize.y))
+            (m_SceneRenderer->GetFramebuffer()->GetWidth() != (uint32_t)m_ViewportSize.x || m_SceneRenderer->GetFramebuffer()->GetHeight() != (uint32_t)m_ViewportSize.y))
         {
-            m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            m_SceneRenderer->SetViewportSize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         }
 
@@ -495,44 +475,10 @@ void EditorLayer::DrawViewportPanel()
             m_DeletePopupNeedsPositioning = false;
         }
 
-        m_Framebuffer->Bind();
-        glEnable(GL_DEPTH_TEST); // Ensure depth test is on for 3D rendering
-        Renderer::Clear({ 0.12f, 0.12f, 0.14f, 1.0f });
-        m_Shader->Bind();
-        m_Shader->SetMat4("u_ViewProj", m_EditorCamera.GetViewProjection());
+        // Delegated Rendering to SceneRenderer
+        m_SceneRenderer->RenderEditor(m_ActiveScene.get(), m_EditorCamera, m_SelectedEntity);
 
-        auto& reg = m_ActiveScene->Reg();
-        m_Shader->SetFloat4("u_Color", glm::vec4(0.2f, 0.7f, 1.0f, 1.0f));
-        reg.view<TransformComponent, MeshComponent>().each([&](auto entity, TransformComponent& transform, MeshComponent& meshComp)
-        {
-            if (!meshComp.MeshHandle) return;
-            m_Shader->SetMat4("u_Model", transform.GetMatrix());
-            auto* va = meshComp.MeshHandle->GetVertexArray();
-            va->Bind();
-            glDrawElements(GL_TRIANGLES, meshComp.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
-        });
-            
-        if (m_SelectedEntity && m_SelectedEntity.HasComponent<MeshComponent>())
-        {
-             auto& mc = m_SelectedEntity.GetComponent<MeshComponent>();
-             if (mc.MeshHandle)
-             {
-                 auto& tc = m_SelectedEntity.GetComponent<TransformComponent>();
-                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                 glLineWidth(4.0f);
-                 m_Shader->SetFloat4("u_Color", glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
-                 m_Shader->SetFloat4("u_Color", glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
-                 m_Shader->SetMat4("u_Model", tc.GetMatrix());
-                 auto* va = mc.MeshHandle->GetVertexArray();
-                 va->Bind();
-                 glDrawElements(GL_TRIANGLES, mc.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
-                 glLineWidth(1.0f);
-                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-             }
-        }
-
-        m_Framebuffer->Unbind();
-        uint32_t textureID = m_Framebuffer->GetColorAttachment();
+        uint32_t textureID = m_SceneRenderer->GetFinalImage();
         ImGui::Image((void*)(intptr_t)textureID, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
 
         if (m_SelectedEntity && m_GizmoType != -1)

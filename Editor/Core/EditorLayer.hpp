@@ -12,6 +12,7 @@
 #include <Rendering/Renderer.hpp>
 #include <Rendering/Buffers/VertexArray.hpp>
 #include <Rendering/Shaders/Shader.hpp>
+#include <Rendering/SceneRenderer.hpp>
 #include <Rendering/Camera/EditorCamera.hpp>
 #include <Core/Commands/CommandHistory.hpp>
 #include <Core/Commands/SceneCommands.hpp>
@@ -39,10 +40,8 @@ private:
     Entity m_SelectedEntity;
 
     // Rendering
-    std::unique_ptr<Framebuffer> m_Framebuffer;
+    std::shared_ptr<SceneRenderer> m_SceneRenderer;
     glm::vec2 m_ViewportSize = { 1280.0f, 720.0f };
-
-    std::unique_ptr<Shader> m_Shader;
     
     EditorCamera m_EditorCamera;
     

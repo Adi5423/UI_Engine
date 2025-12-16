@@ -12,6 +12,7 @@ set(ENGINE_SRC
     Rendering/Mesh/Mesh.cpp
 
     Rendering/Renderer.cpp
+    Rendering/SceneRenderer.cpp
     Rendering/Framebuffer/Framebuffer.cpp
 
     Scene/Scene.cpp
