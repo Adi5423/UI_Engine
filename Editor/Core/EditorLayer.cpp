@@ -23,88 +23,46 @@
 #include <Core/ImGuiLayer.hpp>
 
 
-static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f, 
+// Vertical column-based Vec3 control - Professional game engine style
+static void DrawVec3ControlVertical(const std::string& label, glm::vec3& values, float resetValue = 0.0f,
     std::function<void()> onStartEdit = nullptr, std::function<void()> onEndEdit = nullptr)
 {
-    ImGuiIO& io = ImGui::GetIO();
-    auto boldFont = io.Fonts->Fonts[0]; // Assuming bold is 0 or we can push generic
-
     ImGui::PushID(label.c_str());
 
-    ImGui::Columns(2);
-    ImGui::SetColumnWidth(0, columnWidth);
-    ImGui::Text(label.c_str());
+    // 4 columns: Label | X | Y | Z
+    ImGui::Columns(4, nullptr, false);
+    ImGui::SetColumnWidth(0, 80.0f);
+    ImGui::SetColumnWidth(1, 80.0f);
+    ImGui::SetColumnWidth(2, 80.0f);
+    ImGui::SetColumnWidth(3, 80.0f);
+
+    // Label column
+    ImGui::Text("%s", label.c_str());
     ImGui::NextColumn();
 
-    ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-
-    float lineHeight = ImGui::GetFontSize() + GImGui->Style.FramePadding.y * 2.0f;
-    ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
-
-    // X Axis
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-    ImGui::PushFont(boldFont);
-    if (ImGui::Button("X", buttonSize))
-    {
-        values.x = resetValue;
-        if (onStartEdit) onStartEdit();
-        if (onEndEdit) onEndEdit();
-    }
-    ImGui::PopFont();
-    ImGui::PopStyleColor(3);
-
-    ImGui::SameLine();
+    // X column
+    ImGui::PushItemWidth(-1);
     if (ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f")) { /* Changed */ }
     if (onStartEdit && ImGui::IsItemActivated()) onStartEdit();
     if (onEndEdit && (ImGui::IsItemDeactivatedAfterEdit() || (ImGui::IsItemActive() && ImGui::IsKeyPressed(ImGuiKey_Enter)))) onEndEdit();
     ImGui::PopItemWidth();
-    ImGui::SameLine();
+    ImGui::NextColumn();
 
-    // Y Axis
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
-    ImGui::PushFont(boldFont);
-    if (ImGui::Button("Y", buttonSize))
-    {
-        values.y = resetValue;
-        if (onStartEdit) onStartEdit();
-        if (onEndEdit) onEndEdit();
-    }
-    ImGui::PopFont();
-    ImGui::PopStyleColor(3);
-
-    ImGui::SameLine();
+    // Y column
+    ImGui::PushItemWidth(-1);
     if (ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f")) { /* Changed */ }
     if (onStartEdit && ImGui::IsItemActivated()) onStartEdit();
     if (onEndEdit && (ImGui::IsItemDeactivatedAfterEdit() || (ImGui::IsItemActive() && ImGui::IsKeyPressed(ImGuiKey_Enter)))) onEndEdit();
     ImGui::PopItemWidth();
-    ImGui::SameLine();
+    ImGui::NextColumn();
 
-    // Z Axis
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
-    ImGui::PushFont(boldFont);
-    if (ImGui::Button("Z", buttonSize))
-    {
-        values.z = resetValue;
-        if (onStartEdit) onStartEdit();
-        if (onEndEdit) onEndEdit();
-    }
-    ImGui::PopFont();
-    ImGui::PopStyleColor(3);
-
-    ImGui::SameLine();
+    // Z column
+    ImGui::PushItemWidth(-1);
     if (ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f")) { /* Changed */ }
     if (onStartEdit && ImGui::IsItemActivated()) onStartEdit();
     if (onEndEdit && (ImGui::IsItemDeactivatedAfterEdit() || (ImGui::IsItemActive() && ImGui::IsKeyPressed(ImGuiKey_Enter)))) onEndEdit();
     ImGui::PopItemWidth();
-
-    ImGui::PopStyleVar();
+    ImGui::NextColumn();
 
     ImGui::Columns(1);
     ImGui::PopID();
@@ -325,10 +283,10 @@ void EditorLayer::OnImGuiRender()
     DrawViewportPanel();
 }
 
-// Replaced DrawHierarchyPanel
+// Replaced DrawHierarchyPanel with hover effects
 void EditorLayer::DrawHierarchyPanel()
 {
-    ImGui::Begin("Content Hierarchy"); // Renamed for professional feel
+    ImGui::Begin("Hierarchy");
 
     if (m_ActiveScene)
     {
@@ -343,13 +301,25 @@ void EditorLayer::DrawHierarchyPanel()
         {
             Entity entity(entityHandle, m_ActiveScene.get());
             
-            ImGuiTreeNodeFlags flags = ((m_SelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+            bool isSelected = (m_SelectedEntity == entity);
+            ImGuiTreeNodeFlags flags = (isSelected ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
             flags |= ImGuiTreeNodeFlags_SpanAvailWidth; // Span full width
             
             // Add a leaf flag if no children (assuming flat hierarchy for now, but good practice)
             flags |= ImGuiTreeNodeFlags_Leaf; 
 
             bool opened = ImGui::TreeNodeEx((void*)(uint64_t)entityHandle, flags, "%s", tag.Tag.c_str());
+            
+            // Add hover effect ONLY when not selected (like Content Browser)
+            if (ImGui::IsItemHovered() && !isSelected)
+            {
+                // ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                // ImGui::SetTooltip("Hovered");
+
+                ImVec2 min = ImGui::GetItemRectMin();
+                ImVec2 max = ImGui::GetItemRectMax();
+                ImGui::GetWindowDrawList()->AddRectFilled(min, max, IM_COL32(50, 120, 200, 40));
+            }
             
             if (ImGui::IsItemClicked())
             {
@@ -423,10 +393,6 @@ void EditorLayer::DrawInspectorPanel()
             {
                 tag.Tag = std::string(buffer);
             }
-            // Logic for rename undo/redo can remain or be simplified as in previous implementation
-            // Note: For brevity in this refactor I'm focusing on UI Visuals. 
-            // Ideally we re-integrate the specific rename bridge calls if strictly needed for undo stability.
-            // Re-adding the name tracking:
              if (ImGui::IsItemActivated()) m_PreviousName = tag.Tag;
              if (ImGui::IsItemDeactivatedAfterEdit() && m_PreviousName != tag.Tag)
              {
@@ -434,24 +400,7 @@ void EditorLayer::DrawInspectorPanel()
              }
         }
 
-        ImGui::SameLine();
-        ImGui::PushItemWidth(-1);
-
-        if (ImGui::Button("Add Component"))
-        {
-            ImGui::OpenPopup("AddComponent");
-        }
-
-        if (ImGui::BeginPopup("AddComponent"))
-        {
-            if (ImGui::MenuItem("Camera"))
-            {
-                // Selection logic (TODO)
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-        }
-        ImGui::PopItemWidth();
+        ImGui::Separator();
 
         // Components
         if (m_SelectedEntity.HasComponent<TransformComponent>())
@@ -460,41 +409,61 @@ void EditorLayer::DrawInspectorPanel()
             {
                 auto& tc = m_SelectedEntity.GetComponent<TransformComponent>();
                 
+                // Draw column headers
+                ImGui::Columns(4, nullptr, false);
+                ImGui::SetColumnWidth(0, 80.0f);
+                ImGui::SetColumnWidth(1, 80.0f);
+                ImGui::SetColumnWidth(2, 80.0f);
+                ImGui::SetColumnWidth(3, 80.0f);
+                
+                ImGui::Text(""); // Empty for label column
+                ImGui::NextColumn();
+                
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
+                ImGui::Text("X");
+                ImGui::PopStyleColor();
+                ImGui::NextColumn();
+                
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3f, 0.9f, 0.3f, 1.0f));
+                ImGui::Text("Y");
+                ImGui::PopStyleColor();
+                ImGui::NextColumn();
+                
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.4f, 0.9f, 1.0f));
+                ImGui::Text("Z");
+                ImGui::PopStyleColor();
+                ImGui::NextColumn();
+                
+                ImGui::Columns(1);
+                ImGui::Separator();
+                
                 // Position
-                DrawVec3Control("Position", tc.Position, 0.0f, 100.0f, 
+                DrawVec3ControlVertical("Position", tc.Position, 0.0f, 
                     [&]() { m_TransformEditState.savedTransform = tc; }, 
                     [&]() { EditorBridge::SubmitTransformChange(m_SelectedEntity, m_TransformEditState.savedTransform, tc); }
                 );
 
                 // Rotation
                 glm::vec3 rotationDeg = tc.Rotation; 
-                DrawVec3Control("Rotation", rotationDeg, 0.0f, 100.0f,
+                DrawVec3ControlVertical("Rotation", rotationDeg, 0.0f,
                     [&]() { m_TransformEditState.savedTransform = tc; },
                     [&]() { 
-                        // Update component from degree cache
-                         tc.Rotation = rotationDeg;
+                        tc.Rotation = rotationDeg;
                          EditorBridge::SubmitTransformChange(m_SelectedEntity, m_TransformEditState.savedTransform, tc); 
                     }
                 );
-                // Important: Update the source rotation if changed manually (drag/drop) 
-                // but since we pass by ref to 'rotationDeg' local, we need to apply it back.
-                // The onEndEdit lambda handles the command, but we need to ensure the LOCAL change propagates to 'tc' every frame if changed?
-                // Actually, DrawVec3Control modifies 'rotationDeg'. We need to write it back to 'tc.Rotation' if it changed.
-                // The cleanest way with immediate mode:
-                if (rotationDeg != tc.Rotation) tc.Rotation = rotationDeg; // Apply changes immediately to component
+                if (rotationDeg != tc.Rotation) tc.Rotation = rotationDeg;
 
                 // Scale
-                DrawVec3Control("Scale", tc.Scale, 1.0f, 100.0f,
+                DrawVec3ControlVertical("Scale", tc.Scale, 1.0f,
                    [&]() { m_TransformEditState.savedTransform = tc; },
                    [&]() {
-                       // Enforce non-zero scale
                        if (tc.Scale.x < 0.001f) tc.Scale.x = 0.001f;
                        if (tc.Scale.y < 0.001f) tc.Scale.y = 0.001f;
                        if (tc.Scale.z < 0.001f) tc.Scale.z = 0.001f;
                        EditorBridge::SubmitTransformChange(m_SelectedEntity, m_TransformEditState.savedTransform, tc); 
                    }
                 );
-                 // Enforce non-zero scale continuously
                  if (tc.Scale.x < 0.001f) tc.Scale.x = 0.001f;
                  if (tc.Scale.y < 0.001f) tc.Scale.y = 0.001f;
                  if (tc.Scale.z < 0.001f) tc.Scale.z = 0.001f;
@@ -517,7 +486,7 @@ void EditorLayer::DrawContentBrowserPanel()
     ImGui::Begin("Content Browser");
 
     // Simple grid layout simulation for "Professional" look
-    static float padding = 16.0f;
+    static float padding = 50.0f;
     static float thumbnailSize = 96.0f;
     float cellSize = thumbnailSize + padding;
 

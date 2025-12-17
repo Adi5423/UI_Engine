@@ -6,6 +6,8 @@ set(EDITOR_SRC
     Core/EditorLayer.cpp
     Core/EditorBridge.cpp
     Core/ThemeSettings.cpp
+    Core/WindowLayout.cpp
+    Core/WindowLayout.hpp
     Core/ImGuiLayer.hpp
 )
 

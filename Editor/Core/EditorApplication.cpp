@@ -1,4 +1,5 @@
 #include "EditorApplication.hpp"
+#include "WindowLayout.hpp"
 
 #include <iostream>
 #include <glad/glad.h>
@@ -101,28 +102,23 @@ void EditorApplication::RenderDockspace()
 
     ImGuiID dockspaceID = ImGui::GetID("MainDockspace");
 
-    // If the docking layout is missing/corrupt (or the ini isn't found), create a sane default layout
-    // so the editor doesn't look "blank".
-    static bool dockBuilt = false;
-    if (!dockBuilt)
+    // Check if we need to apply a new layout preset
+    if (m_PendingLayout != WindowLayout::LayoutPreset::None)
     {
-        dockBuilt = true;
+        WindowLayout::LayoutManager::RebuildLayout(m_PendingLayout, dockspaceID);
+        m_PendingLayout = WindowLayout::LayoutPreset::None;
+    }
 
-        ImGui::DockBuilderRemoveNode(dockspaceID);
-        ImGui::DockBuilderAddNode(dockspaceID, dockFlags | ImGuiDockNodeFlags_DockSpace);
-        ImGui::DockBuilderSetNodeSize(dockspaceID, viewport->Size);
-
-        ImGuiID dockMain = dockspaceID;
-        ImGuiID dockLeft = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Left, 0.20f, nullptr, &dockMain);
-        ImGuiID dockRight = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Right, 0.25f, nullptr, &dockMain);
-        ImGuiID dockBottom = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Down, 0.30f, nullptr, &dockMain);
-
-        ImGui::DockBuilderDockWindow("Hierarchy", dockLeft);
-        ImGui::DockBuilderDockWindow("Inspector", dockRight);
-        ImGui::DockBuilderDockWindow("Content Browser", dockBottom);
-        ImGui::DockBuilderDockWindow("Viewport", dockMain);
-
-        ImGui::DockBuilderFinish(dockspaceID);
+    // Default initialization (if no .ini and no pending layout)
+    static bool firstFrame = true;
+    if (firstFrame)
+    {
+        firstFrame = false;
+        ImGuiDockNode* node = ImGui::DockBuilderGetNode(dockspaceID);
+        if (node == nullptr || !node->IsSplitNode())
+        {
+            WindowLayout::LayoutManager::RebuildLayout(WindowLayout::LayoutPreset::Default, dockspaceID);
+        }
     }
 
     ImGui::DockSpace(dockspaceID, ImVec2(0, 0), dockFlags);
@@ -148,6 +144,20 @@ void EditorApplication::RenderMenuBar()
         {
             if (ImGui::MenuItem("Theme"))
                 m_EditorLayer->ToggleThemePanel();
+
+            // Window layouts submenu
+            if (ImGui::BeginMenu("Window"))
+            {
+                if (ImGui::MenuItem("Default"))
+                {
+                    m_PendingLayout = WindowLayout::LayoutPreset::Default;
+                }
+                if (ImGui::MenuItem("Godot"))
+                {
+                    m_PendingLayout = WindowLayout::LayoutPreset::Godot;
+                }
+                ImGui::EndMenu();
+            }
 
             ImGui::EndMenu();
         }

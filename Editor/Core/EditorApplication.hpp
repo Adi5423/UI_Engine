@@ -20,6 +20,7 @@
 
 #include <Core/Application.hpp>
 #include <memory>
+#include "WindowLayout.hpp"
 
 // Forward declarations
 class ImGuiLayer;
@@ -52,6 +53,7 @@ private:
 
     // State
     bool m_ShowDockspace = true;
+    WindowLayout::LayoutPreset m_PendingLayout = WindowLayout::LayoutPreset::None;
 
     // Internal methods
     void RenderDockspace();
