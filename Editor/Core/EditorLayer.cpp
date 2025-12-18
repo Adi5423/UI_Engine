@@ -174,9 +174,11 @@ void EditorLayer::OnUpdate(float deltaTime)
     if (m_ActiveScene)
         m_ActiveScene->OnUpdate(deltaTime);
 
-    if (!ViewportInput::IsCameraActive()) // Changed else to if to allow scene update but separation logic continues
+    if (!ViewportInput::IsCameraActive()) 
     {
-        bool deletePressed = Input::IsKeyPressed(GLFW_KEY_X) || Input::IsKeyPressed(GLFW_KEY_DELETE);
+        bool ctrlPressed = Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL) || Input::IsKeyPressed(GLFW_KEY_RIGHT_CONTROL);
+        bool deletePressed = (Input::IsKeyPressed(GLFW_KEY_X) && !ctrlPressed) || Input::IsKeyPressed(GLFW_KEY_DELETE);
+        
         if (deletePressed && m_SelectedEntity) 
         {
              if (Input::IsKeyPressed(GLFW_KEY_X))
@@ -184,14 +186,12 @@ void EditorLayer::OnUpdate(float deltaTime)
                  if (!m_ShowDeletePopup && m_SelectedEntity.HasComponent<TransformComponent>()) 
                  {
                     m_ShowDeletePopup = true;
-                    
-                    // Store object's world position for later screen projection
                     auto& tc = m_SelectedEntity.GetComponent<TransformComponent>();
                     m_DeletePopupWorldPos = tc.Position;
                     m_DeletePopupNeedsPositioning = true;
                  }
              }
-             else
+             else // DELETE key
              {
                  EditorBridge::SubmitDeleteEntity(m_SelectedEntity);
                  m_SelectedEntity = Entity();
@@ -248,38 +248,53 @@ void EditorLayer::OnUpdate(float deltaTime)
             // Copy
             if (Input::IsKeyPressed(GLFW_KEY_C))
             {
-                if (m_SelectedEntity.HasComponent<IDComponent>())
+                if (!m_CopyPressedLastFrame && m_SelectedEntity.HasComponent<IDComponent>())
                 {
                     m_Clipboard.Mode = ClipboardMode::Copy;
                     m_Clipboard.EntityID = m_SelectedEntity.GetComponent<IDComponent>().ID;
                     m_CutEntityID = entt::null;
                     CORE_INFO("[Clipboard] Entity Copied to clipboard");
                 }
+                m_CopyPressedLastFrame = true;
             }
+            else m_CopyPressedLastFrame = false;
 
             // Cut
             if (Input::IsKeyPressed(GLFW_KEY_X))
             {
-                if (m_SelectedEntity.HasComponent<IDComponent>())
+                if (!m_CutPressedLastFrame && m_SelectedEntity.HasComponent<IDComponent>())
                 {
                     m_Clipboard.Mode = ClipboardMode::Cut;
                     m_Clipboard.EntityID = m_SelectedEntity.GetComponent<IDComponent>().ID;
                     m_CutEntityID = m_SelectedEntity.Handle();
                     CORE_INFO("[Clipboard] Entity Cut to clipboard");
                 }
+                m_CutPressedLastFrame = true;
             }
+            else m_CutPressedLastFrame = false;
 
             // Duplicate
             if (Input::IsKeyPressed(GLFW_KEY_D))
             {
-                EditorBridge::SubmitDuplicate(m_SelectedEntity, true); // Linked
+                if (!m_DuplicatePressedLastFrame)
+                {
+                    EditorBridge::SubmitDuplicate(m_SelectedEntity, true); // Linked
+                    m_DuplicatePressedLastFrame = true;
+                }
             }
+            else m_DuplicatePressedLastFrame = false;
+        }
+        else
+        {
+            m_CopyPressedLastFrame = false;
+            m_CutPressedLastFrame = false;
+            m_DuplicatePressedLastFrame = false;
         }
 
         // Paste
         if (ctrlPressed && Input::IsKeyPressed(GLFW_KEY_V))
         {
-            if (m_Clipboard.Mode != ClipboardMode::None)
+            if (!m_PastePressedLastFrame && m_Clipboard.Mode != ClipboardMode::None)
             {
                 Entity src = m_ActiveScene->GetEntityByUUID(m_Clipboard.EntityID);
                 if (src)
@@ -299,7 +314,9 @@ void EditorLayer::OnUpdate(float deltaTime)
                     }
                 }
             }
+            m_PastePressedLastFrame = true;
         }
+        else m_PastePressedLastFrame = false;
     }
 }
 

@@ -71,6 +71,10 @@ private:
     // Shortcuts state
     bool m_UndoPressedLastFrame = false;
     bool m_RedoPressedLastFrame = false;
+    bool m_CopyPressedLastFrame = false;
+    bool m_CutPressedLastFrame = false;
+    bool m_PastePressedLastFrame = false;
+    bool m_DuplicatePressedLastFrame = false;
 
     // Clipboard State
     enum class ClipboardMode { None, Copy, Cut };
