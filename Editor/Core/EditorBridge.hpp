@@ -110,6 +110,44 @@ public:
         s_History->ExecuteCommand(std::move(cmd));
     }
 
+    static void SubmitDuplicate(Entity entity, bool isLinked = false)
+    {
+        if (!s_History || !entity) return;
+
+        CORE_INFO("[Bridge] Duplicate Request for Entity: " + std::to_string((uint32_t)entity.Handle()));
+
+        auto cmd = std::make_unique<DuplicateEntityCommand>(
+            GetScene(entity),
+            entity,
+            isLinked
+        );
+        s_History->ExecuteCommand(std::move(cmd));
+    }
+
+    static void SubmitReorder(Entity entity)
+    {
+        if (!s_History || !entity) return;
+
+        int32_t oldOrder = 0;
+        if (entity.HasComponent<HierarchyOrderComponent>())
+            oldOrder = entity.GetComponent<HierarchyOrderComponent>().Order;
+
+        // Calculate new max order
+        int32_t maxOrder = -1;
+        entity.GetScene()->Reg().view<HierarchyOrderComponent>().each([&](auto e, auto& hc) {
+            if (hc.Order > maxOrder) maxOrder = hc.Order;
+        });
+        int32_t newOrder = maxOrder + 1;
+
+        auto cmd = std::make_unique<ReorderEntityCommand>(
+            GetScene(entity),
+            entity,
+            oldOrder,
+            newOrder
+        );
+        s_History->ExecuteCommand(std::move(cmd));
+    }
+
 private:
     static CommandHistory* s_History;
 

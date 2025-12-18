@@ -18,43 +18,96 @@ Entity Scene::CreateEntityWithUUID(Core::UUID uuid, const std::string& name)
     // Add ID Component
     entity.AddComponent<IDComponent>(uuid);
     
-    // Check if TagComponent is needed. 
-    // SceneAPI adds it manually. 
-    // To be safe and compliant with existing SceneAPI, we WON'T add TagComponent here 
-    // UNLESS the previous implementation did. 
-    // Previous implementation ignored 'name'.
-    // BUT common practice is CreateEntity ADDS Tag.
-    // If I add Tag here, SceneAPI will crash on emplace.
-    // So I will update SceneAPI to NOT add Tag if it exists, OR I won't add Tag here.
-    
-    // Given the user wants "Change whole project structure", I should make CreateEntity standard.
-    // Standard: CreateEntity adds Tag and Transform usually.
-    // But SceneAPI is explicit.
-    
-    // Let's stick to MINIMAL INTERFERENCE with SceneAPI logic for now regarding Tags.
-    // BUT we MUST add IDComponent.
+    // Register in map for O(1) lookup
+    m_EntityMap[uuid] = entity.Handle();
     
     return entity;
 }
 
 void Scene::DestroyEntity(Entity entity)
 {
+    if (!entity) return;
+
+    // Remove from map before destroying
+    if (entity.HasComponent<IDComponent>())
+    {
+        m_EntityMap.erase(entity.GetComponent<IDComponent>().ID);
+    }
+
     m_Registry.destroy(entity.Handle());
 }
 
 void Scene::OnUpdate(float ts)
 {
-    // Update scripts, physics, etc. here in the future.
+    // -------------------------------------------------------------------------
+    // Duplication Sync Logic (Delta Propagation)
+    // -------------------------------------------------------------------------
+    auto view = m_Registry.view<TransformComponent, DuplicationComponent>();
+    for (auto entity : view)
+    {
+        auto& tc = view.get<TransformComponent>(entity);
+        auto& dup = view.get<DuplicationComponent>(entity);
+
+        Entity source = GetEntityByUUID(dup.SourceID);
+        if (source && source.HasComponent<TransformComponent>())
+        {
+            auto& sourceTC = source.GetComponent<TransformComponent>();
+
+            // If it's the first sync, just cache the current state to avoid immediate jumps
+            if (dup.IsFirstSync)
+            {
+                dup.LastSourcePosition = sourceTC.Position;
+                dup.LastSourceRotation = sourceTC.Rotation;
+                dup.LastSourceScale = sourceTC.Scale;
+                dup.IsFirstSync = false;
+            }
+            else
+            {
+                // Calculate Delta from last known source state
+                glm::vec3 posDelta = sourceTC.Position - dup.LastSourcePosition;
+                glm::vec3 rotDelta = sourceTC.Rotation - dup.LastSourceRotation;
+                glm::vec3 scaleDelta = sourceTC.Scale - dup.LastSourceScale;
+
+                // If source moved, apply delta to duplicate
+                bool changed = false;
+                if (glm::length(posDelta) > 0.0001f) { tc.Position += posDelta; changed = true; }
+                if (glm::length(rotDelta) > 0.0001f) { tc.Rotation += rotDelta; changed = true; }
+                if (glm::length(scaleDelta) > 0.0001f) { tc.Scale += scaleDelta; changed = true; }
+
+                if (changed)
+                {
+                    // Update cache for next frame's delta calculation
+                    dup.LastSourcePosition = sourceTC.Position;
+                    dup.LastSourceRotation = sourceTC.Rotation;
+                    dup.LastSourceScale = sourceTC.Scale;
+                }
+            }
+        }
+    }
 }
 
 Entity Scene::GetEntityByUUID(Core::UUID uuid)
 {
+    if (m_EntityMap.find(uuid) != m_EntityMap.end())
+    {
+        entt::entity handle = m_EntityMap.at(uuid);
+        if (m_Registry.valid(handle))
+            return Entity{ handle, this };
+        else
+            m_EntityMap.erase(uuid); // Clean up stale entry
+    }
+    
+    // Fallback: search just in case (and repopulate map)
     auto view = m_Registry.view<IDComponent>();
     for (auto entity : view)
     {
         const auto& id = view.get<IDComponent>(entity).ID;
         if (id == uuid)
+        {
+            m_EntityMap[uuid] = entity;
             return Entity{ entity, this };
+        }
     }
+
     return Entity{};
 }

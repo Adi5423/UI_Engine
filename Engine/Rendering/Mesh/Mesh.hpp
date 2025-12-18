@@ -21,13 +21,15 @@ public:
         None = 0,
         Cube,
         Triangle3D,
-        Circle
+        Circle,
+        Plane
     };
 
     // New 3D mesh creation API
     static std::shared_ptr<Mesh> CreateCube();
     static std::shared_ptr<Mesh> CreateTriangle3D();
     static std::shared_ptr<Mesh> CreateCircle(uint32_t segments = 32);
+    static std::shared_ptr<Mesh> CreatePlane();
 
     VertexArray* GetVertexArray() const { return m_VertexArray.get(); }
     uint32_t GetIndexCount() const { return m_IndexCount; }

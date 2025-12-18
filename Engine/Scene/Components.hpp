@@ -73,3 +73,45 @@ struct MeshComponent
     MeshComponent(const std::shared_ptr<Mesh>& mesh)
         : MeshHandle(mesh) {}
 };
+
+// -----------------------------
+// Hierarchy Order Component
+// -----------------------------
+struct HierarchyOrderComponent
+{
+    int32_t Order = 0;
+
+    HierarchyOrderComponent() = default;
+    HierarchyOrderComponent(int32_t order) : Order(order) {}
+};
+
+// -----------------------------
+// Camera Component
+// -----------------------------
+struct CameraComponent
+{
+    // For now simple flag or parameters
+    float FOV = 45.0f;
+    float Near = 0.1f;
+    float Far = 1000.0f;
+
+    CameraComponent() = default;
+};
+
+// -----------------------------
+// Duplication Component
+// -----------------------------
+struct DuplicationComponent
+{
+    Core::UUID SourceID;
+    
+    // Cached source values to calculate diff
+    glm::vec3 LastSourcePosition{ 0.0f };
+    glm::vec3 LastSourceRotation{ 0.0f };
+    glm::vec3 LastSourceScale{ 1.0f };
+
+    bool IsFirstSync = true;
+
+    DuplicationComponent() = default;
+    DuplicationComponent(const Core::UUID& sourceID) : SourceID(sourceID) {}
+};

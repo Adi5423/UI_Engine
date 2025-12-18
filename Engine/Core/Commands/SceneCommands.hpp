@@ -88,6 +88,21 @@ public:
             
         if (reg.any_of<MeshComponent>(handle))
             m_MeshComp = reg.get<MeshComponent>(handle);
+
+        if (reg.any_of<CameraComponent>(handle))
+        {
+            m_HasCamera = true;
+            m_CameraComp = reg.get<CameraComponent>(handle);
+        }
+
+        if (reg.any_of<DuplicationComponent>(handle))
+        {
+            m_HasDuplication = true;
+            m_DuplicationComp = reg.get<DuplicationComponent>(handle);
+        }
+
+        if (reg.any_of<HierarchyOrderComponent>(handle))
+            m_HierarchyComp = reg.get<HierarchyOrderComponent>(handle);
     }
 
     void Execute() override
@@ -123,6 +138,20 @@ public:
                 restored.AddComponent<MeshComponent>();
             restored.GetComponent<MeshComponent>() = m_MeshComp;
         }
+
+        if (m_HasCamera)
+        {
+            restored.AddComponent<CameraComponent>() = m_CameraComp;
+        }
+
+        if (m_HasDuplication)
+        {
+            restored.AddComponent<DuplicationComponent>() = m_DuplicationComp;
+        }
+
+        if (!restored.HasComponent<HierarchyOrderComponent>())
+            restored.AddComponent<HierarchyOrderComponent>();
+        restored.GetComponent<HierarchyOrderComponent>() = m_HierarchyComp;
     }
 
     std::string GetDescription() const override
@@ -137,6 +166,13 @@ private:
     TagComponent       m_TagComp;
     TransformComponent m_TransformComp;
     MeshComponent      m_MeshComp;
+    HierarchyOrderComponent m_HierarchyComp;
+
+    bool m_HasCamera = false;
+    CameraComponent m_CameraComp;
+
+    bool m_HasDuplication = false;
+    DuplicationComponent m_DuplicationComp;
 };
 
 
@@ -234,4 +270,108 @@ private:
     Core::UUID m_EntityUUID;
     std::string m_OldName;
     std::string m_NewName;
+};
+// =========================================================================================
+// DUPLICATE ENTITY COMMAND
+// =========================================================================================
+class DuplicateEntityCommand : public ICommand
+{
+public:
+    DuplicateEntityCommand(Scene* scene, Entity source, bool isLinked = false)
+        : m_Scene(scene), m_SourceUUID(source.GetComponent<IDComponent>().ID), m_IsLinked(isLinked)
+    {
+        m_NewEntityUUID = Core::UUID(); // Assign new ID for the duplicate
+        if (source.HasComponent<TagComponent>())
+            m_SourceName = source.GetComponent<TagComponent>().Tag;
+    }
+
+    void Execute() override
+    {
+        if (!m_Scene) return;
+        Entity source = m_Scene->GetEntityByUUID(m_SourceUUID);
+        if (!source) return;
+
+        // Perform duplication
+        Entity duplicate = SceneAPI::DuplicateEntity(*m_Scene, source, m_IsLinked);
+        
+        // Force the duplicate to use our persistent UUID so Undo/Redo works
+        // We need to re-assign it because DuplicateEntity calls CreateEntity which generates a new one.
+        if (duplicate.HasComponent<IDComponent>())
+        {
+            // Remove from map old handle-uuid association
+            auto oldUUID = duplicate.GetComponent<IDComponent>().ID;
+            // Since we just created it, it might be in the map.
+            // But we want it to have m_NewEntityUUID.
+            
+            // Actually, better: SceneAPI should support passing a UUID.
+            // For now, we manually fix it.
+            duplicate.GetComponent<IDComponent>().ID = m_NewEntityUUID;
+            // The map will be updated on next GetEntityByUUID call or we can do it manually if we had access.
+            // Since we updated Scene::GetEntityByUUID to fallback, it's safe.
+        }
+    }
+
+    void Undo() override
+    {
+        if (!m_Scene) return;
+        Entity entity = m_Scene->GetEntityByUUID(m_NewEntityUUID);
+        if (entity)
+        {
+            m_Scene->DestroyEntity(entity);
+        }
+    }
+
+    std::string GetDescription() const override
+    {
+        return "Duplicate " + m_SourceName;
+    }
+
+private:
+    Scene* m_Scene;
+    Core::UUID m_SourceUUID;
+    Core::UUID m_NewEntityUUID;
+    std::string m_SourceName;
+    bool m_IsLinked;
+};
+// =========================================================================================
+// REORDER ENTITY COMMAND
+// =========================================================================================
+class ReorderEntityCommand : public ICommand
+{
+public:
+    ReorderEntityCommand(Scene* scene, Entity entity, int32_t oldOrder, int32_t newOrder)
+        : m_Scene(scene), m_OldOrder(oldOrder), m_NewOrder(newOrder)
+    {
+        if (entity && entity.HasComponent<IDComponent>())
+            m_EntityUUID = entity.GetComponent<IDComponent>().ID;
+    }
+
+    void Execute() override
+    {
+        Entity entity = m_Scene->GetEntityByUUID(m_EntityUUID);
+        if (entity)
+        {
+            entity.AddOrReplaceComponent<HierarchyOrderComponent>(m_NewOrder);
+        }
+    }
+
+    void Undo() override
+    {
+        Entity entity = m_Scene->GetEntityByUUID(m_EntityUUID);
+        if (entity)
+        {
+            entity.AddOrReplaceComponent<HierarchyOrderComponent>(m_OldOrder);
+        }
+    }
+
+    std::string GetDescription() const override
+    {
+        return "Reorder Entity";
+    }
+
+private:
+    Scene* m_Scene;
+    Core::UUID m_EntityUUID;
+    int32_t m_OldOrder;
+    int32_t m_NewOrder;
 };

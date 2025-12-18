@@ -1,0 +1,83 @@
+"C:\Program Files\mingw64\bin\cmake.exe" -SD:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine -BD:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build --check-build-system CMakeFiles\Makefile.cmake 0
+"C:\Program Files\mingw64\bin\cmake.exe" -E cmake_progress_start D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\CMakeFiles D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\\CMakeFiles\progress.marks
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f CMakeFiles\Makefile2 all
+mingw32-make[1]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/depend
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+"C:\Program Files\mingw64\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\CMakeFiles\glad.dir\DependInfo.cmake "--color="
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/build
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+mingw32-make[2]: Nothing to be done for 'CMakeFiles/glad.dir/build'.
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+[  3%] Built target glad
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f vendor\glfw\src\CMakeFiles\glfw.dir\build.make vendor/glfw/src/CMakeFiles/glfw.dir/depend
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+"C:\Program Files\mingw64\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\vendor\glfw\src D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\vendor\glfw\src D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\vendor\glfw\src\CMakeFiles\glfw.dir\DependInfo.cmake "--color="
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f vendor\glfw\src\CMakeFiles\glfw.dir\build.make vendor/glfw/src/CMakeFiles/glfw.dir/build
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+mingw32-make[2]: Nothing to be done for 'vendor/glfw/src/CMakeFiles/glfw.dir/build'.
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+[ 40%] Built target glfw
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f CMakeFiles\imgui.dir\build.make CMakeFiles/imgui.dir/depend
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+"C:\Program Files\mingw64\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\CMakeFiles\imgui.dir\DependInfo.cmake "--color="
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f CMakeFiles\imgui.dir\build.make CMakeFiles/imgui.dir/build
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+mingw32-make[2]: Nothing to be done for 'CMakeFiles/imgui.dir/build'.
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+[ 53%] Built target imgui
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f CMakeFiles\ImGuizmo.dir\build.make CMakeFiles/ImGuizmo.dir/depend
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+"C:\Program Files\mingw64\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\CMakeFiles\ImGuizmo.dir\DependInfo.cmake "--color="
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f CMakeFiles\ImGuizmo.dir\build.make CMakeFiles/ImGuizmo.dir/build
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+mingw32-make[2]: Nothing to be done for 'CMakeFiles/ImGuizmo.dir/build'.
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+[ 56%] Built target ImGuizmo
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f Engine\CMakeFiles\UICheckEngine.dir\build.make Engine/CMakeFiles/UICheckEngine.dir/depend
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+"C:\Program Files\mingw64\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\Engine\CMakeFiles\UICheckEngine.dir\DependInfo.cmake "--color="
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f Engine\CMakeFiles\UICheckEngine.dir\build.make Engine/CMakeFiles/UICheckEngine.dir/build
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+mingw32-make[2]: Nothing to be done for 'Engine/CMakeFiles/UICheckEngine.dir/build'.
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+[ 87%] Built target UICheckEngine
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f Editor\CMakeFiles\UICheckEditor.dir\build.make Editor/CMakeFiles/UICheckEditor.dir/depend
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+"C:\Program Files\mingw64\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Editor D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\Editor D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\Editor\CMakeFiles\UICheckEditor.dir\DependInfo.cmake "--color="
+Dependencies file "Editor/CMakeFiles/UICheckEditor.dir/Core/EditorLayer.cpp.obj.d" is newer than depends file "D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build/Editor/CMakeFiles/UICheckEditor.dir/compiler_depend.internal".
+Consolidate compiler generated dependencies of target UICheckEditor
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+C:/PROGRA~1/mingw64/bin/mingw32-make.exe  -f Editor\CMakeFiles\UICheckEditor.dir\build.make Editor/CMakeFiles/UICheckEditor.dir/build
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+[ 88%] Building CXX object Editor/CMakeFiles/UICheckEditor.dir/Core/EditorLayer.cpp.obj
+cd /d D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\build\Editor && C:\PROGRA~1\mingw64\bin\G__~1.EXE -DGLFW_DLL @CMakeFiles/UICheckEditor.dir/includes_CXX.rsp -g -std=gnu++20 -MD -MT Editor/CMakeFiles/UICheckEditor.dir/Core/EditorLayer.cpp.obj -MF CMakeFiles\UICheckEditor.dir\Core\EditorLayer.cpp.obj.d -o CMakeFiles\UICheckEditor.dir\Core\EditorLayer.cpp.obj -c D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Editor\Core\EditorLayer.cpp
+D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Editor\Core\EditorLayer.cpp: In member function 'void EditorLayer::DrawHierarchyPanel()':
+D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Editor\Core\EditorLayer.cpp:411:33: error: 'struct EditorLayer::ClipboardRecord' has no member named 'EntityHandle'
+  411 |                     m_Clipboard.EntityHandle = entityHandle;
+      |                                 ^~~~~~~~~~~~
+D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Editor\Core\EditorLayer.cpp:416:33: error: 'struct EditorLayer::ClipboardRecord' has no member named 'EntityHandle'
+  416 |                     m_Clipboard.EntityHandle = entityHandle;
+      |                                 ^~~~~~~~~~~~
+D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Editor\Core\EditorLayer.cpp:420:99: error: 'struct EditorLayer::ClipboardRecord' has no member named 'EntityHandle'
+  420 |                 bool canPaste = (m_Clipboard.Mode != ClipboardMode::None && reg.valid(m_Clipboard.EntityHandle));
+      |                                                                                                   ^~~~~~~~~~~~
+D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Editor\Core\EditorLayer.cpp:473:95: error: 'struct EditorLayer::ClipboardRecord' has no member named 'EntityHandle'
+  473 |             bool canPaste = (m_Clipboard.Mode != ClipboardMode::None && reg.valid(m_Clipboard.EntityHandle));
+      |                                                                                               ^~~~~~~~~~~~
+D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Editor\Core\EditorLayer.cpp:477:44: error: 'struct EditorLayer::ClipboardRecord' has no member named 'EntityHandle'
+  477 |                     Entity src(m_Clipboard.EntityHandle, m_ActiveScene.get());
+      |                                            ^~~~~~~~~~~~
+D:\ProjectsTest\UI\ENTT_YT\GitTests\initial\UI_Engine\Editor\Core\EditorLayer.cpp:480:44: error: 'struct EditorLayer::ClipboardRecord' has no member named 'EntityHandle'
+  480 |                     Entity src(m_Clipboard.EntityHandle, m_ActiveScene.get());
+      |                                            ^~~~~~~~~~~~
+mingw32-make[2]: *** [Editor\CMakeFiles\UICheckEditor.dir\build.make:124: Editor/CMakeFiles/UICheckEditor.dir/Core/EditorLayer.cpp.obj] Error 1
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+mingw32-make[1]: *** [CMakeFiles\Makefile2:413: Editor/CMakeFiles/UICheckEditor.dir/all] Error 2
+mingw32-make[1]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/GitTests/initial/UI_Engine/build'
+mingw32-make: *** [Makefile:135: all] Error 2
