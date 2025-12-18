@@ -179,3 +179,23 @@ std::shared_ptr<Mesh> Mesh::CreateCircle(uint32_t segments)
     mesh->m_Type = PrimitiveType::Circle;
     return mesh;
 }
+
+//
+// ---------- PLANE (1x1 Quad) ----------
+//
+std::shared_ptr<Mesh> Mesh::CreatePlane()
+{
+    std::vector<Vertex> vertices =
+    {
+        {{-0.5f, 0.0f,  0.5f}, {0, 1, 0}},
+        {{ 0.5f, 0.0f,  0.5f}, {0, 1, 0}},
+        {{ 0.5f, 0.0f, -0.5f}, {0, 1, 0}},
+        {{-0.5f, 0.0f, -0.5f}, {0, 1, 0}}
+    };
+
+    std::vector<uint32_t> indices = { 0, 1, 2, 2, 3, 0 };
+
+    auto mesh = std::shared_ptr<Mesh>(new Mesh(vertices, indices));
+    mesh->m_Type = PrimitiveType::Plane;
+    return mesh;
+}

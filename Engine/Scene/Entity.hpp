@@ -21,6 +21,12 @@ public:
         return m_Scene->Reg().emplace<T>(m_Handle, std::forward<Args>(args)...);
     }
 
+    template<typename T, typename... Args>
+    T& AddOrReplaceComponent(Args&&... args)
+    {
+        return m_Scene->Reg().emplace_or_replace<T>(m_Handle, std::forward<Args>(args)...);
+    }
+
     template<typename T>
     bool HasComponent() const
     {

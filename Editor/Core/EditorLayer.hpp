@@ -72,11 +72,19 @@ private:
     bool m_UndoPressedLastFrame = false;
     bool m_RedoPressedLastFrame = false;
 
+    // Clipboard State
+    enum class ClipboardMode { None, Copy, Cut };
+    struct ClipboardRecord {
+        ClipboardMode Mode = ClipboardMode::None;
+        Core::UUID EntityID = 0;
+    } m_Clipboard;
+
     // Delete Popup State
     bool m_ShowDeletePopup = false;
     glm::vec2 m_DeletePopupPos = { 0.0f, 0.0f };
     glm::vec3 m_DeletePopupWorldPos = { 0.0f, 0.0f, 0.0f };
     bool m_DeletePopupNeedsPositioning = false;
+    entt::entity m_CutEntityID = entt::null; // For visual fading in hierarchy
 
     // Internal helpers
     void DrawHierarchyPanel();

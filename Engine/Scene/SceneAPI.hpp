@@ -12,11 +12,32 @@
 
 namespace SceneAPI
 {
-    inline Entity CreateCamera(Scene& scene, const std::string& name = "Camera")
+    inline void SetNextOrder(Entity entity)
+    {
+        auto& reg = entity.GetScene()->Reg();
+        int32_t maxOrder = -1;
+        reg.view<HierarchyOrderComponent>().each([&](auto e, auto& hc) {
+            if (hc.Order > maxOrder) maxOrder = hc.Order;
+        });
+        entity.AddOrReplaceComponent<HierarchyOrderComponent>(maxOrder + 1);
+    }
+
+    inline Entity CreateEmptyEntity(Scene& scene, const std::string& name = "Empty Entity")
+    {
+        Entity entity = scene.CreateEntity(name);
+        entity.AddComponent<TagComponent>(name);
+        entity.AddComponent<TransformComponent>();
+        SetNextOrder(entity);
+        return entity;
+    }
+
+    inline Entity CreateCameraEntity(Scene& scene, const std::string& name = "Camera")
     {
         Entity camera = scene.CreateEntity(name);
         camera.AddComponent<TagComponent>(name);
         camera.AddComponent<TransformComponent>();
+        camera.AddComponent<CameraComponent>();
+        SetNextOrder(camera);
         return camera;
     }
 
@@ -27,9 +48,9 @@ namespace SceneAPI
     {
         Entity entity = scene.CreateEntity(name);
         entity.AddComponent<TagComponent>(name);
-        auto& tc = entity.AddComponent<TransformComponent>(position);
-        (void)tc;
+        entity.AddComponent<TransformComponent>(position);
         entity.AddComponent<MeshComponent>(mesh);
+        SetNextOrder(entity);
         return entity;
     }
 
@@ -41,21 +62,50 @@ namespace SceneAPI
     {
         Entity entity = scene.CreateEntityWithUUID(uuid, name);
         entity.AddComponent<TagComponent>(name);
-        auto& tc = entity.AddComponent<TransformComponent>(position);
-        (void)tc;
+        entity.AddComponent<TransformComponent>(position);
         entity.AddComponent<MeshComponent>(mesh);
+        SetNextOrder(entity);
         return entity;
+    }
+
+    inline Entity DuplicateEntity(Scene& scene, Entity source, bool isLinked = false)
+    {
+        if (!source) return Entity();
+
+        std::string name = "Entity";
+        if (source.HasComponent<TagComponent>())
+            name = source.GetComponent<TagComponent>().Tag;
+
+        // Simple name indexing logic: if ends with number, increment, else add " 2"
+        // For simplicity here just add " 2" or " (Instance)"
+        name += isLinked ? " (Instance)" : " 2";
+
+        Entity duplicate = scene.CreateEntity(name);
+        duplicate.AddComponent<TagComponent>(name);
+
+        if (source.HasComponent<TransformComponent>())
+            duplicate.AddComponent<TransformComponent>(source.GetComponent<TransformComponent>());
+
+        if (source.HasComponent<MeshComponent>())
+            duplicate.AddComponent<MeshComponent>(source.GetComponent<MeshComponent>());
+
+        if (source.HasComponent<CameraComponent>())
+            duplicate.AddComponent<CameraComponent>();
+
+        if (isLinked)
+        {
+            auto sourceID = source.GetComponent<IDComponent>().ID;
+            duplicate.AddComponent<DuplicationComponent>(sourceID);
+        }
+
+        SetNextOrder(duplicate);
+        return duplicate;
     }
 
     inline void CreateDefaultScene(Scene& scene)
     {
-        // Camera
-        CreateCamera(scene);
-
-        // For now: three default meshes (you can change this to only one "Plane" later)
+        CreateCameraEntity(scene);
         CreateMeshEntity(scene, "Cube",     Mesh::CreateCube(),     { -0.4f, 0.5f, 0.0f });
-        // CreateMeshEntity(scene, "Cube2",    Mesh::CreateCube(),     { 2.0f, 0.5f, 0.0f });
-        // CreateMeshEntity(scene, "Cube3",    Mesh::CreateCube(),     { 0.8f, -1.2f, 0.0f });
         CreateMeshEntity(scene, "Triangle", Mesh::CreateTriangle3D(), { -1.5f, 0.3f, 0.0f });
         CreateMeshEntity(scene, "Circle",   Mesh::CreateCircle(32), { 1.5f, 0.0f, 0.0f });
     }

@@ -1,7 +1,7 @@
 #pragma once
 #include <entt/entt.hpp>
-
 #include <Core/UUID.hpp>
+#include <unordered_map>
 
 class Entity;
 
@@ -23,4 +23,5 @@ public:
 
 private:
     entt::registry m_Registry;
+    std::unordered_map<Core::UUID, entt::entity> m_EntityMap;
 };
