@@ -37,6 +37,7 @@ A modern 3D game engine built with OpenGL, featuring an Entity-Component-System 
 # Clone the repository
 git clone <repository-url>
 cd UI_Engine
+git submodule update --init --recursive
 
 # Configure CMake (Build System)
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -222,9 +223,9 @@ This engine is under active development. Current features include:
 **Aditya Tiwari**
 
 - LinkedIn: [Aditya Tiwari](https://www.linkedin.com/in/adii5423/)
-- GitHub: [adi5423](https://github.com/adi5423)
+- GitHub: [Adi5423](https://github.com/adi5423)
 - Email: adii54ti23@gmail.com
-- Twitter: [@Adii5423](https://twitter.com/Adii5423)
+- Twitter: [@Adiii5423](https://twitter.com/Adiii5423)
 - Instagram: [@Adii5423.exe](https://instagram.com/Adii5423)
 
 ---
