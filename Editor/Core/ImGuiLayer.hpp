@@ -8,7 +8,7 @@ class ImGuiLayer : public Layer
 {
 public:
     ImGuiLayer();
-    ~ImGuiLayer();
+    ~ImGuiLayer() override;
 
     void OnAttach() override;
     void OnDetach() override;

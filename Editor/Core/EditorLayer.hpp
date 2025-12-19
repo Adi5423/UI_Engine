@@ -22,7 +22,7 @@ class EditorLayer : public Layer
 {
 public:
     EditorLayer();
-    ~EditorLayer();
+    ~EditorLayer() override;
     EditorCamera& GetCamera() { return m_EditorCamera; } // camera and input system
 
     bool m_ShowThemePanel = false;
@@ -32,7 +32,7 @@ public:
     void OnUpdate(float deltaTime) override;
     void ToggleThemePanel() { m_ShowThemePanel = !m_ShowThemePanel; }
     void DrawThemePanel();
-    void OnImGuiRender(); // Called every frame to draw panels
+    void OnImGuiRender() override; // Called every frame to draw panels
 
 private:
     // Scene / ECS

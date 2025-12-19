@@ -30,7 +30,7 @@ class EditorApplication : public Application
 {
 public:
     EditorApplication(const ApplicationSpecification& spec);
-    virtual ~EditorApplication();
+    ~EditorApplication() override;
 
     // ========================================================================
     // Lifecycle Overrides

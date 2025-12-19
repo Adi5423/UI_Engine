@@ -143,7 +143,11 @@ void ImGuiLayer::OnAttach()
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
+#ifdef __APPLE__
+    ImGui_ImplOpenGL3_Init("#version 410 core");
+#else
     ImGui_ImplOpenGL3_Init("#version 450");
+#endif
 
     m_Enabled = true;
 

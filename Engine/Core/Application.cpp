@@ -26,10 +26,18 @@ Application::Application(const ApplicationSpecification& spec)
         spec.WindowHeight
     );
     m_Window = std::unique_ptr<Window>(Window::Create(windowProps));
-    // Bind Event Callback
-    m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
-
-    CORE_INFO("Window created: {0} ({1}x{2})", spec.Name, spec.WindowWidth, spec.WindowHeight);
+    
+    if (m_Window && m_Window->GetNativeWindow())
+    {
+        // Bind Event Callback
+        m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
+        CORE_INFO("Window created: {0} ({1}x{2})", spec.Name, spec.WindowWidth, spec.WindowHeight);
+    }
+    else
+    {
+        CORE_ERROR("Application failed to initialize: Window creation failed!");
+        m_Running = false;
+    }
 }
 
 Application::~Application()
@@ -39,6 +47,12 @@ Application::~Application()
 
 void Application::Run()
 {
+    if (!m_Running)
+    {
+        CORE_ERROR("Application.Run() aborted: Application not running (initialization failed).");
+        return;
+    }
+
     // ========================================================================
     // Pre-Loop Initialization
     // ========================================================================

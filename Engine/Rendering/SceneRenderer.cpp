@@ -15,7 +15,7 @@ void SceneRenderer::Init()
     // Initialize Shader (Basic Shader copied from EditorLayer)
     // In a real engine, this would be loaded from assets
     std::string vs = R"(
-#version 450 core
+#version 410 core
 layout(location = 0) in vec3 aPos;
 uniform mat4 u_Model;
 uniform mat4 u_ViewProj;
@@ -25,7 +25,7 @@ void main()
 }
 )";
     std::string fs = R"(
-#version 450 core
+#version 410 core
 out vec4 FragColor;
 uniform vec4 u_Color;
 void main()

@@ -218,6 +218,26 @@ This engine is under active development. Current features include:
 
 ---
 
+---
+
+## Troubleshooting
+
+### "vendor/glfw does not contain a CMakeLists.txt file"
+
+This happens when Git submodules are missing.
+**Solution**: Run `git submodule update --init --recursive` in the terminal. If you downloaded the project as a ZIP, please clone it via Git instead.
+
+### "Could not find OpenGL" on Linux
+
+**Solution**: Install the development headers for your distro.
+`sudo apt install libgl1-mesa-dev`
+
+### "macOS OpenGL Version Error"
+
+This engine requires a modern core profile. On Mac, ensure you are using the `Release` build to enable forward-compatibility modes.
+
+---
+
 ## Developer
 
 **Aditya Tiwari**
