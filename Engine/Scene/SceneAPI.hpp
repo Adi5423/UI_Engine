@@ -102,6 +102,45 @@ namespace SceneAPI
         return duplicate;
     }
 
+    // Duplicate an entity but force the duplicated entity to use a caller-supplied UUID.
+    // This is critical for deterministic Undo/Redo (a command can recreate the same entity).
+    inline Entity DuplicateEntityWithUUID(Scene& scene, Entity source, Core::UUID newUUID, bool isLinked = false)
+    {
+        if (!source) return Entity();
+
+        // If the UUID is already in use, do not create a second entity with the same ID.
+        // (This can happen if Execute() is called twice without an intervening Undo().)
+        Entity existing = scene.GetEntityByUUID(newUUID);
+        if (existing) return existing;
+
+        std::string name = "Entity";
+        if (source.HasComponent<TagComponent>())
+            name = source.GetComponent<TagComponent>().Tag;
+
+        name += isLinked ? " (Instance)" : " 2";
+
+        Entity duplicate = scene.CreateEntityWithUUID(newUUID, name);
+        duplicate.AddComponent<TagComponent>(name);
+
+        if (source.HasComponent<TransformComponent>())
+            duplicate.AddComponent<TransformComponent>(source.GetComponent<TransformComponent>());
+
+        if (source.HasComponent<MeshComponent>())
+            duplicate.AddComponent<MeshComponent>(source.GetComponent<MeshComponent>());
+
+        if (source.HasComponent<CameraComponent>())
+            duplicate.AddComponent<CameraComponent>();
+
+        if (isLinked)
+        {
+            auto sourceID = source.GetComponent<IDComponent>().ID;
+            duplicate.AddComponent<DuplicationComponent>(sourceID);
+        }
+
+        SetNextOrder(duplicate);
+        return duplicate;
+    }
+
     inline void CreateDefaultScene(Scene& scene)
     {
         CreateCameraEntity(scene);

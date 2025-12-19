@@ -291,24 +291,8 @@ public:
         Entity source = m_Scene->GetEntityByUUID(m_SourceUUID);
         if (!source) return;
 
-        // Perform duplication
-        Entity duplicate = SceneAPI::DuplicateEntity(*m_Scene, source, m_IsLinked);
-        
-        // Force the duplicate to use our persistent UUID so Undo/Redo works
-        // We need to re-assign it because DuplicateEntity calls CreateEntity which generates a new one.
-        if (duplicate.HasComponent<IDComponent>())
-        {
-            // Remove from map old handle-uuid association
-            auto oldUUID = duplicate.GetComponent<IDComponent>().ID;
-            // Since we just created it, it might be in the map.
-            // But we want it to have m_NewEntityUUID.
-            
-            // Actually, better: SceneAPI should support passing a UUID.
-            // For now, we manually fix it.
-            duplicate.GetComponent<IDComponent>().ID = m_NewEntityUUID;
-            // The map will be updated on next GetEntityByUUID call or we can do it manually if we had access.
-            // Since we updated Scene::GetEntityByUUID to fallback, it's safe.
-        }
+        // Perform duplication with a stable UUID so Undo/Redo is deterministic.
+        SceneAPI::DuplicateEntityWithUUID(*m_Scene, source, m_NewEntityUUID, m_IsLinked);
     }
 
     void Undo() override

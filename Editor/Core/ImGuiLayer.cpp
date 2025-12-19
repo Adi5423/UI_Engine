@@ -20,6 +20,7 @@ ImGuiStyle ImGuiLayer::DefaultEngineStyle;
 void ImGuiLayer::OnAttach()
 {
     GLFWwindow* window = (GLFWwindow*)Application::Get().GetWindow()->GetNativeWindow();
+    // Base ImGui initialization
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
@@ -30,10 +31,6 @@ void ImGuiLayer::OnAttach()
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
     io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
     io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports;
-
-
-    ImGui::GetMainViewport()->PlatformHandleRaw = window;
-    ImGui::GetMainViewport()->PlatformHandle = window;
 
     // Fix window stacking issue (floating panels going behind main window)
     ImGui::GetIO().ConfigViewportsNoDecoration = false;
