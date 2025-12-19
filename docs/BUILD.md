@@ -8,15 +8,16 @@ Complete instructions for building and running the UI Engine from source.
 
 ### Required Tools
 
-| Tool | Minimum Version | Purpose |
-|------|----------------|---------|
-| **CMake** | 3.20+ | Build system generator |
-| **C++ Compiler** | C++20 support | Code compilation |
-| **Git** | Any recent | Clone repository and submodules |
+| Tool             | Minimum Version | Purpose                         |
+| ---------------- | --------------- | ------------------------------- |
+| **CMake**        | 3.20+           | Build system generator          |
+| **C++ Compiler** | C++20 support   | Code compilation                |
+| **Git**          | Any recent      | Clone repository and submodules |
 
 ### Platform-Specific Compilers
 
 #### Windows
+
 - **MinGW-w64** (recommended) - GCC toolchain for Windows
   - Download from [WinLibs](https://winlibs.com/) or [MSYS2](https://www.msys2.org/)
   - Ensure `g++` is in PATH
@@ -24,16 +25,19 @@ Complete instructions for building and running the UI Engine from source.
   - Install "Desktop development with C++" workload
 
 #### Linux
+
 - **GCC 10+** or **Clang 12+**
+
   ```bash
   # Ubuntu/Debian
   sudo apt install build-essential cmake git
-  
+
   # Fedora
   sudo dnf install gcc-c++ cmake git
   ```
 
 #### macOS
+
 - **Xcode Command Line Tools**
   ```bash
   xcode-select --install
@@ -63,6 +67,7 @@ cmake -S . -B build
 ```
 
 **Options:**
+
 - Specify generator: `-G "Ninja"` or `-G "Unix Makefiles"`
 - Set build type: `-DCMAKE_BUILD_TYPE=Release` (default is Debug)
 
@@ -73,6 +78,7 @@ cmake --build build
 ```
 
 Or for multi-core compilation:
+
 ```bash
 cmake --build build -j8
 ```
@@ -116,6 +122,7 @@ cmake -S . -B build
 ```
 
 **What This Does:**
+
 - Configures build system in `build/` directory
 - Detects compiler and platform
 - Processes all `CMakeLists.txt` files
@@ -141,10 +148,11 @@ cmake --build build
 ```
 
 **Build Targets:**
-- `UICheckEngine` - Static library containing engine systems
-- `imgui` - Static library for ImGui
-- `glad` - Static library for OpenGL loader
-- `glfw` - Static library for windowing
+
+- `UICheckEngine` - Shared library (.dll) containing engine systems
+- `imgui` - Shared library (.dll) for ImGui
+- `glad` - Shared library (.dll) for OpenGL loader
+- `glfw` - Shared library (.dll) for windowing
 - `UICheckEditor` - Main executable
 
 **Parallel Compilation:**
@@ -184,6 +192,7 @@ build/
 2. Install CMake Tools: `ms-vscode.cmake-tools`
 
 **Configure** (`.vscode/settings.json`):
+
 ```json
 {
   "cmake.sourceDirectory": "${workspaceFolder}",
@@ -219,6 +228,7 @@ build/
 #### "CMake 3.20 or higher is required"
 
 **Solution:** Update CMake
+
 ```bash
 # Download latest from https://cmake.org/download/
 # Or use package manager:
@@ -229,6 +239,7 @@ pip install cmake --upgrade
 
 **Windows:** Install graphics drivers  
 **Linux:**
+
 ```bash
 sudo apt install libgl1-mesa-dev  # Ubuntu/Debian
 sudo dnf install mesa-libGL-devel # Fedora
@@ -249,6 +260,7 @@ sudo dnf install mesa-libGL-devel # Fedora
 #### "fatal error: GLFW/glfw3.h: No such file or directory"
 
 **Solution:** Vendor submodules not initialized
+
 ```bash
 git submodule update --init --recursive
 ```
@@ -256,6 +268,7 @@ git submodule update --init --recursive
 #### Linker errors with ImGui
 
 **Solution:** Clean and rebuild
+
 ```bash
 rm -rf build
 cmake -S . -B build
@@ -267,6 +280,7 @@ cmake --build build
 #### "Failed to create GLFW window"
 
 **Causes:**
+
 - Graphics drivers out of date
 - OpenGL 4.6 not supported by GPU
 
@@ -281,6 +295,7 @@ cmake --build build
 #### Black/blank viewport
 
 **Causes:**
+
 - Framebuffer creation failed
 - Shader compilation error
 
@@ -298,6 +313,7 @@ cmake --build build
 ```
 
 **Features:**
+
 - Debug symbols included
 - Optimizations disabled
 - Assertions enabled
@@ -312,6 +328,7 @@ cmake --build build
 ```
 
 **Features:**
+
 - Optimizations enabled (`-O3` / `/O2`)
 - Debug symbols stripped
 - Smaller binary size
@@ -325,6 +342,7 @@ cmake --build build
 ```
 
 **Features:**
+
 - Optimizations enabled
 - Debug symbols included
 - Best for profiling
@@ -386,13 +404,13 @@ UI_Engine/
 ├── CMakeLists.txt          # Root: sets up vendors, includes subdirs
 │
 ├── Engine/
-│   └── CMakeLists.txt      # Builds UICheckEngine static library
+│   └── CMakeLists.txt      # Builds UICheckEngine shared library
 │
 ├── Editor/
 │   └── CMakeLists.txt      # Builds UICheckEditor executable
 │
 └── vendor/
-    ├── glfw/CMakeLists.txt   # GLFW build
+    ├── glfw/CMakeLists.txt   # GLFW build (Shared)
     ├── glm/CMakeLists.txt    # GLM (header-only)
     └── entt/                 # EnTT (single header)
 ```
@@ -410,7 +428,7 @@ UI_Engine/
 
 Example GitHub Actions workflow (`.github/workflows/build.yml`):
 
-```yaml
+````yaml
 name: Build
 
 on: [push, pull_request]
@@ -421,20 +439,86 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        
+
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        
-    - name: Configure CMake
-      run: cmake -S . -B build
-      
-    - name: Build
-      run: cmake --build build
-      
-    - name: Test
-      run: ./build/bin/UICheckEditor --version
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Configure CMake
+        run: cmake -S . -B build
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ./build/bin/UICheckEditor --version
+
+---
+
+## Professional Release Packaging (Windows)
+
+To package the engine for distribution so it runs on any Windows machine without requiring MinGW or development tools installed.
+
+### 1. The Release Workflow
+
+Run these commands in order to create a clean, portable `ReleaseBuild` folder:
+
+```powershell
+# 1. Clear old build data (Optional but recommended)
+Remove-Item -Recurse -Force build
+Remove-Item -Recurse -Force ReleaseBuild
+
+# 2. Configure for Release with MinGW
+cmake -G "MinGW Makefiles" -B build -DCMAKE_BUILD_TYPE=Release
+
+# 3. Build the binaries
+cmake --build build --config Release
+
+# 4. Install/Package to the ReleaseBuild directory
+cmake --install build --prefix ReleaseBuild --config Release
+````
+
+### 2. What's in the Box?
+
+The `ReleaseBuild` folder is designed to be "Direct Play" ready:
+
+- **Modular DLLs**: `UICheckEngine.dll`, `glad.dll`, `imgui.dll`, etc., are in the root next to the `.exe`.
+- **Runtime Bundling**: The system automatically pulls `libgcc_s_seh-1.dll`, `libstdc++-6.dll`, and `libwinpthread-1.dll` from your compiler path and includes them.
+- **Assets**: All files in `Drop_at_EXE/` (like `settings/` and `imgui.ini`) are automatically copied.
+
+### 3. Verification & Testing
+
+We use these commands to ensure the build is perfectly portable before zipping:
+
+#### Verify File Structure
+
+```powershell
+tree /F ReleaseBuild
+```
+
+_Checks if all DLLs, EXEs, and settings folders are in their correct relative positions._
+
+#### Verify Dynamic Linking (Important)
+
+We use `objdump` (included with MinGW) to check if the executable is correctly looking for the DLLs in its own folder rather than static linking or external system paths.
+
+```powershell
+# Check dependencies of the Editor
+objdump -p ReleaseBuild/UICheckEditor.exe | Select-String "DLL Name"
+
+# Check dependencies of the Engine DLL
+objdump -p ReleaseBuild/UICheckEngine.dll | Select-String "DLL Name"
+```
+
+_If you see `UICheckEngine.dll`, `glad.dll`, and `libstdc++-6.dll` in the output, the dynamic linking is working perfectly._
+
+#### Portability Test
+
+1. Zip the `ReleaseBuild` folder.
+2. Send to a machine without MinGW installed.
+3. Run `UICheckEditor.exe`. It should start immediately.
+
 ```
 
 ---
@@ -462,3 +546,4 @@ If you encounter issues not covered here:
    - Steps to reproduce
 
 Happy building!
+```

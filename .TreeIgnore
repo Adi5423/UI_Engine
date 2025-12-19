@@ -9,4 +9,7 @@ start::
 ./build/
 ./.vs
 ./.vscode
-:end
+[.txt]
+./ReleaseBuild
+[.zip]
+:end    
