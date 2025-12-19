@@ -58,7 +58,9 @@ git clone <repository-url>
 cd UI_Engine
 ```
 
-> **Note:** All dependencies are included in `vendor/` as Git submodules or vendored directly. No external library installation needed.
+> **Note:** For loading all dependencies in `vendor/` as Git submodules or vendored directly.
+
+> Run "git submodule update --init --recursive"
 
 ### Configure CMake
 
