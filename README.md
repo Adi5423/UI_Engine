@@ -12,10 +12,13 @@ A modern 3D game engine built with OpenGL, featuring an Entity-Component-System 
 - **ImGui-based Editor** with dockable viewports and scene hierarchy
 - **Viewport-Scoped Input System** for precise camera control
 - **3D Mesh Rendering** with primitive generation (cube, triangle, circle)
+- **3D Transform Gizmos** using [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) (Translate, Rotate, Scale)
+- **Granular Undo/Redo System** based on the Command Pattern
 - **Editor Camera** with fly-through controls (WASD + right-mouse look)
 - **Framebuffer Rendering** to ImGui viewport textures
 - **Component-based Scene Management** with transform hierarchy
 - **Runtime Theme Customization** with JSON persistence
+- **Professional Windows Packaging** with shared DLL architecture
 - **Cross-platform CMake Build System**
 
 ---
@@ -39,13 +42,16 @@ cd UI_Engine
 cmake -S . -B build
 
 # Build the project
-cmake --build build
+cmake --build build --config Release
+
+# Install/Package (Creates portable Release folder)
+cmake --install build --prefix ReleaseBuild --config Release
 
 # Run the editor
-./build/bin/UICheckEditor
+./ReleaseBuild/UICheckEditor.exe
 ```
 
-For detailed build instructions and troubleshooting, see [docs/BUILD.md](docs/BUILD.md).
+For detailed build instructions and professional release packaging, see [docs/BUILD.md](docs/BUILD.md).
 
 ---
 
@@ -83,16 +89,19 @@ UI_Engine/
 The editor features a fully dockable ImGui interface with the following panels:
 
 ### Viewport Panel
+
 - Displays the 3D scene rendered to an off-screen framebuffer
 - Supports viewport-scoped camera controls
 - Automatically resizes with the panel
 
 ### Hierarchy Panel
+
 - Lists all entities in the active scene
 - Click to select entities for inspection
 - Displays entity names from TagComponent
 
 ### Inspector Panel
+
 - Shows components of the selected entity
 - Edit **Tag** (entity name)
 - Edit **Transform** properties:
@@ -101,10 +110,12 @@ The editor features a fully dockable ImGui interface with the following panels:
   - Scale (X, Y, Z)
 
 ### Content Browser Panel
+
 - Placeholder for future asset management system
 - Will support file browsing and asset import
 
 ### Theme Settings Panel
+
 - Access via **Settings > Theme** menu
 - Edit all ImGui style properties in real-time:
   - Window/Frame/Tab rounding
@@ -120,10 +131,12 @@ The editor features a fully dockable ImGui interface with the following panels:
 ### Camera Movement (Viewport-Scoped)
 
 Camera controls only activate when:
+
 1. Mouse cursor is **inside the viewport** window
 2. **Right mouse button** is held down
 
 **Movement:**
+
 - `W` / `S` - Move forward/backward
 - `A` / `D` - Strafe left/right
 - `Q` / `E` - Move down/up
@@ -152,16 +165,16 @@ The cursor automatically locks when camera is active and releases when you relea
 
 ## Technology Stack
 
-| Component | Library | Version |
-|-----------|---------|---------|
-| Graphics API | OpenGL | 4.6 Core |
-| Window/Input | GLFW | 3.x |
-| GL Loader | GLAD | 4.6 |
-| Math | GLM | Latest |
-| UI Framework | ImGui | Docking branch |
-| ECS | EnTT | Single-header |
-| JSON | nlohmann/json | Single-header |
-| Build System | CMake | 3.20+ |
+| Component    | Library       | Version        |
+| ------------ | ------------- | -------------- |
+| Graphics API | OpenGL        | 4.6 Core       |
+| Window/Input | GLFW          | 3.x            |
+| GL Loader    | GLAD          | 4.6            |
+| Math         | GLM           | Latest         |
+| UI Framework | ImGui         | Docking branch |
+| ECS          | EnTT          | Single-header  |
+| JSON         | nlohmann/json | Single-header  |
+| Build System | CMake         | 3.20+          |
 
 ---
 
@@ -170,6 +183,7 @@ The cursor automatically locks when camera is active and releases when you relea
 This engine is under active development. Current features include:
 
 **Completed:**
+
 - Basic rendering pipeline with mesh abstraction
 - ECS-based scene management
 - ImGui editor with viewport rendering
@@ -182,7 +196,13 @@ This engine is under active development. Current features include:
 - JSON-based theme persistence
 - Default theme backup and restoration
 
+- Gizmo system for transform manipulation (Translate, Rotate, Scale)
+- Command system for viewport actions
+- Multi-threaded Logging and Resource persistence
+- Professional portable DLL-based release structure
+
 **Planned Features:**
+
 - Material system with PBR shading
 - Scene serialization (save/load)
 - Asset management system
@@ -190,7 +210,6 @@ This engine is under active development. Current features include:
 - Physics integration
 - Audio system
 - Entity hierarchy (parent-child transforms)
-- Gizmo system for transform manipulation
 
 ---
 
@@ -209,6 +228,7 @@ This engine is under active development. Current features include:
 ## Contributing
 
 Contributions are welcome. Feel free to:
+
 - Report bugs by opening an issue
 - Suggest new features
 - Submit pull requests with improvements
@@ -226,6 +246,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) 
 ## Acknowledgments
 
 Special thanks to the developers of:
+
 - [GLFW](https://www.glfw.org/) - Window and input handling
 - [Dear ImGui](https://github.com/ocornut/imgui) - Immediate mode GUI
 - [EnTT](https://github.com/skypjack/entt) - Fast and reliable ECS library

@@ -7,6 +7,7 @@ This document provides a technical overview of the UI Engine's architecture, inc
 ## System Overview
 
 The UI Engine follows a modular, professional game engine architecture with clear separation between:
+
 - **Engine Module**: Core runtime library providing application framework, rendering, and scene management
 - **Editor Module**: ImGui-based editor application built on top of the engine
 
@@ -47,24 +48,27 @@ The UI Engine follows a modular, professional game engine architecture with clea
 
 ## Engine Module
 
-The engine is compiled as a static library (`UICheckEngine`) that provides all core functionality.
+The engine is compiled as a shared library (`UICheckEngine.dll`) that provides all core functionality.
 
 ### Core Subsystem
 
 **Location:** `Engine/Core/`
 
 #### Entry Point (`EntryPoint.hpp`)
+
 - Contains the engine's `main()` function
 - Handles bootstrap, argument parsing, and shutdown
 - Calls the client-defined `CreateApplication()` function
 
 #### Application (`Application.hpp/cpp`)
+
 - **Base Class** for all applications
 - Virtual lifecycle methods: `OnInit()`, `OnUpdate(dt)`, `OnShutdown()`
 - Manages the main run loop and window
 - Singleton access via `Application::Get()`
 
 #### Window (`Window.hpp`, `GLFWWindow.hpp/cpp`)
+
 - Platform-agnostic window interface
 - GLFW implementation for window creation
 - OpenGL context management
@@ -73,17 +77,32 @@ The engine is compiled as a static library (`UICheckEngine`) that provides all c
 #### Input System (`Core/Input/`)
 
 **Input.hpp/cpp** - Global input polling
+
 - Keyboard state queries (`IsKeyPressed`)
 - Mouse button state (`IsMouseButtonPressed`)
 - Mouse position tracking (`GetMousePosition`, `GetMouseDelta`)
 - Must be initialized with `Input::Init(window)`
 
 **ViewportInput.hpp/cpp** - Viewport-scoped input
+
 - Tracks viewport bounds within ImGui
 - Determines if mouse is inside viewport
 - Manages camera activation state
 - Provides viewport-relative mouse delta
 - Handles cursor lock/unlock for camera mode
+
+#### Logging System (`Core/Log.hpp/cpp`)
+
+- Color-coded console output (Trace, Info, Warn, Error, Fatal)
+- Simultaneous persistent logging to `logs/engine.log`
+- Decentralized architecture for Engine and Client-side logging
+
+#### Command System (`Core/Commands/`)
+
+- Professional undo/redo functionality using the Command Pattern
+- Decouples user actions from direct scene state mutation
+- Manages command history with undo/redo stacks
+- Essential for maintaining deterministic scene state
 
 See [INPUT_SYSTEM.md](INPUT_SYSTEM.md) for detailed documentation.
 
@@ -94,7 +113,9 @@ See [INPUT_SYSTEM.md](INPUT_SYSTEM.md) for detailed documentation.
 **Location:** `Engine/Rendering/`
 
 #### Renderer (`Renderer.hpp/cpp`)
+
 High-level rendering API:
+
 - `Init()` - Initialize OpenGL state (depth testing, etc.)
 - `BeginScene(viewProj)` - Start a render pass with camera matrix
 - `Submit(mesh, transform, shader)` - Submit a mesh for rendering
@@ -104,6 +125,7 @@ High-level rendering API:
 #### Mesh System (`Rendering/Mesh/`)
 
 **Mesh.hpp/cpp** - Mesh abstraction
+
 - Factory methods for primitives:
   - `CreateCube()` - Unit cube centered at origin
   - `CreateTriangle3D()` - Triangle in XZ plane
@@ -120,6 +142,7 @@ High-level rendering API:
 #### Shaders (`Rendering/Shaders/`)
 
 **Shader.hpp/cpp** - Shader program management
+
 - Compilation from source strings
 - Uniform setting (`SetMat4`, `SetVec3`, `SetFloat`, etc.)
 - Automatic program binding
@@ -127,6 +150,7 @@ High-level rendering API:
 #### Framebuffer (`Rendering/Framebuffer/`)
 
 **Framebuffer.hpp/cpp** - Offscreen rendering target
+
 - Creates color and depth attachments
 - Used to render scene to ImGui viewport texture
 - Resizable to match viewport dimensions
@@ -134,6 +158,7 @@ High-level rendering API:
 #### Camera (`Rendering/Camera/`)
 
 **EditorCamera.hpp/cpp** - Free-flying editor camera
+
 - Fly-through controls (WASD + mouse look)
 - Generates view and projection matrices
 - Configurable FOV, near/far planes, and movement speed
@@ -151,12 +176,14 @@ See [RENDERING.md](RENDERING.md) for detailed documentation.
 The scene system implements an Entity-Component-System (ECS) architecture using [EnTT](https://github.com/skypjack/entt).
 
 #### Scene (`Scene.hpp/cpp`)
+
 - Manages the EnTT registry
 - Entity creation and destruction
 - Provides access to registry for component queries
 - `CreateEntity(name)` - Create new entity with unique ID
 
 #### Entity (`Entity.hpp`)
+
 - Lightweight wrapper around `entt::entity` handle
 - Provides component management interface:
   - `AddComponent<T>(args...)` - Add component to entity
@@ -167,6 +194,7 @@ The scene system implements an Entity-Component-System (ECS) architecture using 
 #### Components (`Components.hpp`)
 
 **TagComponent** - Human-readable entity name
+
 ```cpp
 struct TagComponent {
     std::string Tag;
@@ -174,17 +202,19 @@ struct TagComponent {
 ```
 
 **TransformComponent** - 3D spatial transformation
+
 ```cpp
 struct TransformComponent {
     glm::vec3 Position{0.0f};
     glm::vec3 Rotation{0.0f};  // Euler angles (degrees)
     glm::vec3 Scale{1.0f};
-    
+
     glm::mat4 GetMatrix() const;  // Computes model matrix
 };
 ```
 
 **MeshComponent** - Renderable mesh reference
+
 ```cpp
 struct MeshComponent {
     std::shared_ptr<Mesh> MeshHandle;
@@ -192,7 +222,9 @@ struct MeshComponent {
 ```
 
 #### SceneAPI (`SceneAPI.hpp`)
+
 Helper functions for common scene operations:
+
 - `CreateCamera(scene, name)` - Create camera entity
 - `CreateMeshEntity(scene, name, mesh, position)` - Create renderable entity
 - `CreateDefaultScene(scene)` - Populate scene with starting content
@@ -235,13 +267,13 @@ public:
     virtual void OnInit() override {
         // Initialize Input, Layers
     }
-    
+
     virtual void OnUpdate(float deltaTime) override {
         // Clear screen
         // Update input
         // Render ImGui layers
     }
-    
+
     virtual void OnShutdown() override {
         // Cleanup
     }
@@ -249,13 +281,17 @@ public:
 ```
 
 ### EditorBridge (`Core/EditorBridge.hpp/cpp`)
+
 acts as a specialized intermediary between the Editor UI and the Command System.
+
 - **Responsibility**: Centralizes logic for submitting commands (Transform, Identify, Create, Delete).
-- **Separation of Concerns**: Ensures the "pure" command logic (Backend) is separated from UI-specific logging and validation (Frontend). 
+- **Separation of Concerns**: Ensures the "pure" command logic (Backend) is separated from UI-specific logging and validation (Frontend).
 - **Logging**: Handles high-level action logging (e.g., "[Bridge] Entity Deleted: UUID"), keeping backend commands clean and silent.
 
 ### Command System (`Engine/Core/Commands/`)
+
 Implements the Command Pattern for robust Undo/Redo functionality.
+
 - **CommandHistory**: Manages the undo/redo stacks.
 - **SceneCommands**: Concrete implementations (`DeleteEntityCommand`, `ModifyTransformCommand`, `CreateMeshCommand`, `RenameEntityCommand`).
 - **Features**:
@@ -266,6 +302,7 @@ Implements the Command Pattern for robust Undo/Redo functionality.
 ### ImGuiLayer (`Core/ImGuiLayer.hpp/cpp`)
 
 Responsibilities:
+
 - Initialize ImGui with GLFW and OpenGL3 backends
 - Configure ImGui for docking (`ImGuiConfigFlags_DockingEnable`)
 - Start and end ImGui frames
@@ -273,6 +310,7 @@ Responsibilities:
 - Apply custom dark theme styling
 
 Key config flags:
+
 - `ImGuiConfigFlags_DockingEnable` - Enable docking
 - `ImGuiConfigFlags_ViewportsEnable` - Multi-viewport support
 - `ImGuiConfigFlags_NoMouseCursorChange` - Let viewport input manage cursor
@@ -280,6 +318,7 @@ Key config flags:
 - `ImGuiConfigFlags_DpiEnableScaleViewports` - DPI-aware viewport scaling
 
 **Default Engine Style:**
+
 - Custom dark theme defined in `OnAttach()`
 - Stored in `ImGuiLayer::DefaultEngineStyle` before applying user themes
 - Enables theme restoration when "Use Default Theme" is selected
@@ -305,6 +344,7 @@ public:
 ```
 
 **Initialization Flow:**
+
 1. `ImGuiLayer::OnAttach()` sets up default engine theme
 2. Stores `DefaultEngineStyle = ImGui::GetStyle()`
 3. Calls `ThemeSettings::Init()` to load JSON file
@@ -313,6 +353,7 @@ public:
 **JSON File Location:** `settings/theme/params.json`
 
 **JSON Structure:**
+
 ```json
 {
     "UseDefaultTheme": false,
@@ -331,6 +372,7 @@ public:
 ```
 
 **Key Features:**
+
 - Automatic directory creation (`settings/theme/`)
 - Safe JSON parsing with error handling
 - Support for RGB and RGBA color arrays
@@ -339,6 +381,7 @@ public:
 #### Default Theme Restoration
 
 When "Use Default Theme" is selected in the Theme Panel:
+
 ```cpp
 ImGui::GetStyle() = ImGuiLayer::DefaultEngineStyle;
 ```
@@ -350,12 +393,14 @@ This restores the exact engine-defined theme, not ImGui's built-in dark theme.
 Main editor interface layer:
 
 **Setup:**
+
 - Creates active scene with default content
 - Initializes framebuffer for viewport rendering
 - Loads shaders for mesh rendering
 - Initializes editor camera
 
 **Rendering Loop:**
+
 1. Bind framebuffer
 2. Clear to background color
 3. Render scene:
@@ -368,18 +413,21 @@ Main editor interface layer:
 **ImGui Interface Panels:**
 
 1. **Viewport Panel** (`DrawViewportPanel()`)
+
    - Displays framebuffer color attachment texture
    - Handles viewport resizing with framebuffer recreation
    - Updates `ViewportInput` bounds for camera controls
    - Supports ImGui window flags for no-scrolling
 
 2. **Hierarchy Panel** (`DrawHierarchyPanel()`)
+
    - Lists all entities in active scene using `registry.view<TagComponent>()`
    - Displays entity names from TagComponent
    - Click to select entity (sets `m_SelectedEntity`)
    - Visual highlight for selected entity
 
 3. **Inspector Panel** (`DrawInspectorPanel()`)
+
    - Shows components of `m_SelectedEntity`
    - Editable fields for:
      - **TagComponent**: Entity name text input
@@ -387,6 +435,7 @@ Main editor interface layer:
    - Component-based sections with collapsible headers
 
 4. **Content Browser Panel** (`DrawContentBrowserPanel()`)
+
    - Placeholder for future asset management
    - Will support file browsing and asset import
 
@@ -418,7 +467,7 @@ Main editor interface layer:
        │       ├─► Mesh VAO binds
        │       └─► glDrawElements()
        └─► Renderer::EndScene()
-   
+
    └─► Render ImGui Viewport
        ├─► Display framebuffer texture
        └─► Update ViewportInput bounds
@@ -435,15 +484,19 @@ Main editor interface layer:
 The project uses CMake with a hierarchical structure:
 
 **Root CMakeLists.txt:**
+
 - Sets up vendor libraries (GLAD, GLFW, ImGui)
 - Includes GLM, EnTT, STB headers
 - Adds Engine and Editor subdirectories
 
 **Engine/CMakeLists.txt:**
-- Compiles `UICheckEngine` static library
+
+- Compiles `UICheckEngine` shared library
 - Links GLAD, GLFW, OpenGL
+- Configures Windows symbol exporting (`WINDOWS_EXPORT_ALL_SYMBOLS`)
 
 **Editor/CMakeLists.txt:**
+
 - Compiles `UICheckEditor` executable
 - Links `UICheckEngine` and `imgui`
 
@@ -454,17 +507,20 @@ See [BUILD.md](BUILD.md) for build instructions.
 ## Key Design Patterns
 
 ### Entity-Component-System (ECS)
+
 - **Entities** are IDs, not classes
 - **Components** are plain data structures
 - **Systems** are functions that query and process components
 - Provides data-oriented design for performance and flexibility
 
 ### Resource Ownership
+
 - **Smart pointers** for automatic cleanup (Scene owns entities, MeshComponent owns mesh)
 - **Unique ownership** for framebuffers, shaders (EditorLayer)
 - **Shared ownership** for meshes (multiple entities can reference same mesh)
 
 ### Layer Architecture
+
 - Modular attachment system (ImGuiLayer, EditorLayer)
 - Each layer handles specific responsibilities
 - Easy to add new layers (e.g., PhysicsLayer, AudioLayer)
@@ -474,10 +530,12 @@ See [BUILD.md](BUILD.md) for build instructions.
 ## Threading Model
 
 Currently **single-threaded**:
+
 - Main thread handles window events, input, rendering, and ImGui
 - All OpenGL calls on main thread (required)
 
 Future multi-threading could include:
+
 - Asset loading on background threads
 - Physics simulation on separate thread
 - Audio processing on dedicated thread
@@ -487,12 +545,14 @@ Future multi-threading could include:
 ## Performance Considerations
 
 ### Current Optimizations
+
 - Static vendor libraries (compiled once)
 - Indexed rendering (reduces vertex duplication)
 - Framebuffer caching (reuses same FBO, only resizes when needed)
 - EnTT's sparse set for fast component queries
 
 ### Future Optimizations
+
 - Batched rendering (reduce draw calls)
 - Frustum culling (skip offscreen entities)
 - LOD system (simpler meshes at distance)
@@ -520,13 +580,13 @@ Create in `Engine/Assets/` (future)
 
 ## Dependencies Summary
 
-| Library | Purpose | Integration |
-|---------|---------|-------------|
-| **GLFW** | Window + Input | Submodule in vendor/ |
-| **GLAD** | OpenGL Loader | Generated, in vendor/ |
-| **GLM** | Math (vectors, matrices) | Header-only, vendor/ |
-| **ImGui** | Editor UI | Compiled to static lib |
-| **EnTT** | ECS Registry | Single header, vendor/ |
-| **STB** | Image loading (future) | Header-only, vendor/ |
+| Library   | Purpose                  | Integration            |
+| --------- | ------------------------ | ---------------------- |
+| **GLFW**  | Window + Input           | Submodule in vendor/   |
+| **GLAD**  | OpenGL Loader            | Generated, in vendor/  |
+| **GLM**   | Math (vectors, matrices) | Header-only, vendor/   |
+| **ImGui** | Editor UI                | Compiled to static lib |
+| **EnTT**  | ECS Registry             | Single header, vendor/ |
+| **STB**   | Image loading (future)   | Header-only, vendor/   |
 
 All dependencies are vendored—no external installations required.
