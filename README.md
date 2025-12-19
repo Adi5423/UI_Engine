@@ -38,20 +38,24 @@ A modern 3D game engine built with OpenGL, featuring an Entity-Component-System 
 git clone <repository-url>
 cd UI_Engine
 
-# Configure CMake
-cmake -S . -B build
+# Configure CMake (Build System)
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 # Build the project
 cmake --build build --config Release
 
-# Install/Package (Creates portable Release folder)
+# Install/Package (Creates self-contained Release folder)
+# This step bundles DLLs/libs and assets for distribution.
 cmake --install build --prefix ReleaseBuild --config Release
 
-# Run the editor
+# Run the engine
+# Windows
 ./ReleaseBuild/UICheckEditor.exe
+# Linux / macOS
+./ReleaseBuild/UICheckEditor
 ```
 
-For detailed build instructions and professional release packaging, see [docs/BUILD.md](docs/BUILD.md).
+For detailed platform-specific instructions and professional release packaging, see [docs/BUILD.md](docs/BUILD.md).
 
 ---
 

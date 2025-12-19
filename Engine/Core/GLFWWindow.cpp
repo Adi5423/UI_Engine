@@ -45,6 +45,12 @@ public:
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE); // Launch maximized
+
+#ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required for macOS
+        glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE); // Support Retina displays
+#endif
 
         m_Window = glfwCreateWindow(
             (int)props.Width,
@@ -52,6 +58,13 @@ public:
             m_Data.Title.c_str(),
             nullptr, nullptr
         );
+
+        if (!m_Window)
+        {
+            CORE_ERROR("Failed to create GLFW window!");
+            glfwTerminate();
+            return;
+        }
 
         glfwMakeContextCurrent(m_Window);
         glfwSwapInterval(1); // vsync

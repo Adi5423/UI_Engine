@@ -519,6 +519,71 @@ _If you see `UICheckEngine.dll`, `glad.dll`, and `libstdc++-6.dll` in the output
 2. Send to a machine without MinGW installed.
 3. Run `UICheckEditor.exe`. It should start immediately.
 
+---
+
+## Cross-Platform Distribution (Direct Play)
+
+To create a "Direct Play" release on Linux and macOS, follow these platform-specific steps. The engine is configured to launch **Maximized** on all devices by default.
+
+### Universal Release Workflow
+
+On all systems, the standard command sequence is:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+cmake --install build --prefix ReleaseBuild --config Release
+```
+
+### 1. Windows (MinGW)
+
+The system automatically bundles:
+
+- `UICheckEngine.dll`, `glad.dll`, `imgui.dll`, `ImGuizmo.dll`, `glfw3.dll`
+- **Compiler Runtimes**: `libstdc++-6.dll`, `libgcc_s_seh-1.dll`, `libwinpthread-1.dll`
+- **Assets**: `settings/`, `imgui.ini`
+
+### 2. Linux (Ubuntu/Debian/Fedora)
+
+On Linux, we use `RPATH` to ensure the executable finds the `.so` files in its own directory.
+
+**Build Requirements:**
+
+```bash
+sudo apt install build-essential cmake libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
+```
+
+**Packaging Note:**
+
+- The `ReleaseBuild` will contain `UICheckEditor` (executable) and `libUICheckEngine.so`, `libimgui.so`, etc.
+- **Portability**: Most Linux systems have `libstdc++` installed. However, for a truly standalone zip, you should bundle the shared objects.
+- **Running**: The user can simply unzip and run `./UICheckEditor`.
+
+### 3. macOS (Intel/Apple Silicon)
+
+On macOS, we handle two key things: **Retina Scaling** and **Shared Library paths**.
+
+**Build Requirements:**
+
+- Xcode Command Line Tools (`xcode-select --install`)
+- CMake via Brew (`brew install cmake`)
+
+**Bundling System:**
+
+- The engine uses `#ifdef __APPLE__` to enable `GLFW_OPENGL_FORWARD_COMPAT` and `GLFW_COCOA_RETINA_FRAMEBUFFER`.
+- This ensures the UI looks crisp on Retina displays and uses a modern OpenGL 4.1+ core profile (Apple's limit).
+- The `ReleaseBuild` folder will work as a portable directory on other Macs of the same architecture (Intel vs M1/M2/M3).
+
+---
+
+## Environment Check (Pre-Zip)
+
+Before zipping your `ReleaseBuild` for other users, check these:
+
+1. **Maximized Window**: The engine will automatically attempt to fill the screen on launch.
+2. **Relative Assets**: Ensure `settings/theme/params.json` exists in the `ReleaseBuild` folder.
+3. **Clean Build**: Always delete the `build/` and `ReleaseBuild/` folders before a final production build to avoid stale debug files.
+
 ```
 
 ---
