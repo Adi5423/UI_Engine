@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <Rendering/Renderer.hpp>
 #include <Scene/Components.hpp>
+#include <Core/Log.hpp>
 
 SceneRenderer::SceneRenderer()
 {
@@ -34,6 +35,16 @@ void main()
 }
 )";
     m_Shader = std::make_shared<Shader>(vs, fs);
+    
+    // Check if shader is valid
+    if (!m_Shader || !m_Shader->IsValid())
+    {
+        CORE_ERROR("[SceneRenderer] Failed to create shader! Viewport will be blank.");
+    }
+    else
+    {
+        CORE_INFO("[SceneRenderer] Shader compiled successfully.");
+    }
 }
 
 void SceneRenderer::SetViewportSize(uint32_t width, uint32_t height)
@@ -51,6 +62,16 @@ void SceneRenderer::SetViewportSize(uint32_t width, uint32_t height)
 void SceneRenderer::RenderEditor(Scene* scene, const EditorCamera& camera, Entity selectedEntity)
 {
     if (!m_Framebuffer || !scene) return;
+    
+    // Don't render if shader is invalid
+    if (!m_Shader || !m_Shader->IsValid())
+    {
+        // Just clear the framebuffer
+        m_Framebuffer->Bind();
+        Renderer::Clear({ 0.12f, 0.12f, 0.14f, 1.0f });
+        m_Framebuffer->Unbind();
+        return;
+    }
 
     m_Framebuffer->Bind();
     
@@ -62,12 +83,28 @@ void SceneRenderer::RenderEditor(Scene* scene, const EditorCamera& camera, Entit
     m_Shader->Bind();
     m_Shader->SetMat4("u_ViewProj", camera.GetViewProjection());
 
+    // DEBUG: Log rendering state (only once)
+    static bool logged = false;
+    if (!logged)
+    {
+        auto& reg = scene->Reg();
+        int meshCount = 0;
+        reg.view<TransformComponent, MeshComponent>().each([&](auto, auto&, auto&) { meshCount++; });
+        
+        CORE_INFO("[SceneRenderer DEBUG] Rendering {0} meshes", meshCount);
+        CORE_INFO("[SceneRenderer DEBUG] Camera Position: ({0}, {1}, {2})", 
+                  camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
+        CORE_INFO("[SceneRenderer DEBUG] Framebuffer: {0}x{1}", m_ViewportWidth, m_ViewportHeight);
+        logged = true;
+    }
+
     // 3. Render All Meshes
     auto& reg = scene->Reg();
     
     // Default blue-ish color for objects
     m_Shader->SetFloat4("u_Color", glm::vec4(0.2f, 0.7f, 1.0f, 1.0f));
 
+    int renderedCount = 0;
     reg.view<TransformComponent, MeshComponent>().each([&](auto entity, TransformComponent& transform, MeshComponent& meshComp)
     {
         if (!meshComp.MeshHandle) return;
@@ -78,7 +115,16 @@ void SceneRenderer::RenderEditor(Scene* scene, const EditorCamera& camera, Entit
         auto* va = meshComp.MeshHandle->GetVertexArray();
         va->Bind();
         glDrawElements(GL_TRIANGLES, meshComp.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+        renderedCount++;
     });
+
+    // DEBUG: Log if nothing was rendered
+    static bool warnedOnce = false;
+    if (renderedCount == 0 && !warnedOnce)
+    {
+        CORE_WARN("[SceneRenderer DEBUG] No meshes were rendered this frame!");
+        warnedOnce = true;
+    }
 
     // 4. Render Selection Outline
     if (selectedEntity && selectedEntity.HasComponent<MeshComponent>())

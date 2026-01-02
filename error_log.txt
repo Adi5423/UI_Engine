@@ -1,0 +1,77 @@
+﻿Change Dir: 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+
+Run Clean Command: "C:/Program Files/mingw64/bin/cmake.exe" -E env VERBOSE=1 C:/msys64/mingw64/bin/mingw32-make.exe -f Makefile clean
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\Makefile2 clean
+mingw32-make[1]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/clean
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+"C:\Program Files\mingw64\bin\cmake.exe" -P CMakeFiles\glad.dir\cmake_clean.cmake
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\imgui.dir\build.make CMakeFiles/imgui.dir/clean
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+"C:\Program Files\mingw64\bin\cmake.exe" -P CMakeFiles\imgui.dir\cmake_clean.cmake
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\ImGuizmo.dir\build.make CMakeFiles/ImGuizmo.dir/clean
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+"C:\Program Files\mingw64\bin\cmake.exe" -P CMakeFiles\ImGuizmo.dir\cmake_clean.cmake
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f vendor\glfw\CMakeFiles\uninstall.dir\build.make vendor/glfw/CMakeFiles/uninstall.dir/clean
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+cd /d D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build\vendor\glfw && "C:\Program Files\mingw64\bin\cmake.exe" -P CMakeFiles\uninstall.dir\cmake_clean.cmake
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f vendor\glfw\src\CMakeFiles\glfw.dir\build.make vendor/glfw/src/CMakeFiles/glfw.dir/clean
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+cd /d D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build\vendor\glfw\src && "C:\Program Files\mingw64\bin\cmake.exe" -P CMakeFiles\glfw.dir\cmake_clean.cmake
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f vendor\glfw\src\CMakeFiles\update_mappings.dir\build.make vendor/glfw/src/CMakeFiles/update_mappings.dir/clean
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+cd /d D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build\vendor\glfw\src && "C:\Program Files\mingw64\bin\cmake.exe" -P CMakeFiles\update_mappings.dir\cmake_clean.cmake
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f Engine\CMakeFiles\UICheckEngine.dir\build.make Engine/CMakeFiles/UICheckEngine.dir/clean
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+cd /d D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build\Engine && "C:\Program Files\mingw64\bin\cmake.exe" -P CMakeFiles\UICheckEngine.dir\cmake_clean.cmake
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f Editor\CMakeFiles\UICheckEditor.dir\build.make Editor/CMakeFiles/UICheckEditor.dir/clean
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+cd /d D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build\Editor && "C:\Program Files\mingw64\bin\cmake.exe" -P CMakeFiles\UICheckEditor.dir\cmake_clean.cmake
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+mingw32-make[1]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+
+Run Build Command(s): "C:/Program Files/mingw64/bin/cmake.exe" -E env VERBOSE=1 C:/msys64/mingw64/bin/mingw32-make.exe -f Makefile
+"C:\Program Files\mingw64\bin\cmake.exe" -SD:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine -BD:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build --check-build-system CMakeFiles\Makefile.cmake 0
+"C:\Program Files\mingw64\bin\cmake.exe" -E cmake_progress_start D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build\CMakeFiles D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build\\CMakeFiles\progress.marks
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\Makefile2 all
+mingw32-make[1]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/depend
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+"C:\Program Files\mingw64\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\build\CMakeFiles\glad.dir\DependInfo.cmake "--color="
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/build
+mingw32-make[2]: Entering directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+[  1%] Building C object CMakeFiles/glad.dir/vendor/glad/src/glad.c.obj
+C:\msys64\mingw64\bin\gcc.exe -Dglad_EXPORTS @CMakeFiles/glad.dir/includes_C.rsp -g -MD -MT CMakeFiles/glad.dir/vendor/glad/src/glad.c.obj -MF CMakeFiles\glad.dir\vendor\glad\src\glad.c.obj.d -o CMakeFiles\glad.dir\vendor\glad\src\glad.c.obj -c D:\ProjectsTest\UI\ENTT_YT\ReleaseB\gitOne\relno_d1_R\ui_engine\vendor\glad\src\glad.c
+cmake : mingw32-make[2]: *** [CMake
+Files\glad.dir\build.make:79: CMake
+Files/glad.dir/vendor/glad/src/glad
+.c.obj] Error 1
+At line:1 char:1
++ cmake --build build 
+--clean-first --verbose 2>&1 | 
+Out-File -FilePath ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotS 
+   pecified: (mingw32-make[2]....  
+  c.obj] Error 1:String) [], Rem   
+ oteException
+    + FullyQualifiedErrorId : Nati 
+   veCommandError
+ 
+mingw32-make[2]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+mingw32-make[1]: *** 
+[CMakeFiles\Makefile2:181: 
+CMakeFiles/glad.dir/all] Error 2
+mingw32-make[1]: Leaving directory 'D:/ProjectsTest/UI/ENTT_YT/ReleaseB/gitOne/relno_d1_R/ui_engine/build'
+mingw32-make: *** [Makefile:135: 
+all] Error 2
+

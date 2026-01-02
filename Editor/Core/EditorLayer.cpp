@@ -3,6 +3,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <cmath>
+#include <cstring> // For strncpy_s or manual null termination
+#include <limits>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -21,6 +23,19 @@
 #include <Scene/SceneAPI.hpp>
 #include <Core/ThemeSettings.hpp>
 #include <Core/ImGuiLayer.hpp>
+
+// ============================================================================
+// Professional Game Engine Constants (Unity/Unreal Standards)
+// ============================================================================
+namespace EditorConstants
+{
+    constexpr float MIN_SCALE = 0.001f;              // Minimum entity scale
+    constexpr float GIZMO_TRANSLATE_SNAP = 0.5f;     // Grid snap for translation
+    constexpr float GIZMO_ROTATE_SNAP = 15.0f;       // Angle snap for rotation (15° increments)
+    constexpr float GIZMO_SCALE_SNAP = 0.1f;         // Scale snap (0.1 increments, finer control)
+    constexpr float EPSILON = 1e-8f;                 // Floating point epsilon
+    constexpr int MAX_TAG_LENGTH = 256;              // Max entity name length
+}
 
 
 // Vertical column-based Vec3 control - Professional game engine style
@@ -68,40 +83,67 @@ static void DrawVec3ControlVertical(const std::string& label, glm::vec3& values,
     ImGui::PopID();
 }
 
+// ============================================================================
+// Ray-AABB Intersection - Professional Slab Method (Unity/Unreal Standard)
+// Handles edge cases: parallel rays, division by zero, negative directions
+// ============================================================================
 static bool RayIntersectsAABB(glm::vec3 origin, glm::vec3 dir, glm::vec3 minB, glm::vec3 maxB, float& t)
-
 {
-    float tmin = (minB.x - origin.x) / dir.x;
-    float tmax = (maxB.x - origin.x) / dir.x;
+    constexpr float EPSILON = 1e-8f; // Avoid division by zero
+    
+    float tmin = -std::numeric_limits<float>::infinity();
+    float tmax =  std::numeric_limits<float>::infinity();
 
-    if (tmin > tmax) std::swap(tmin, tmax);
+    // X-axis slab intersection
+    if (std::abs(dir.x) > EPSILON)
+    {
+        float t1 = (minB.x - origin.x) / dir.x;
+        float t2 = (maxB.x - origin.x) / dir.x;
+        if (t1 > t2) std::swap(t1, t2);
+        tmin = std::max(tmin, t1);
+        tmax = std::min(tmax, t2);
+    }
+    else // Ray parallel to X slabs
+    {
+        if (origin.x < minB.x || origin.x > maxB.x)
+            return false; // Ray misses AABB entirely
+    }
 
-    float tymin = (minB.y - origin.y) / dir.y;
-    float tymax = (maxB.y - origin.y) / dir.y;
+    // Y-axis slab intersection
+    if (std::abs(dir.y) > EPSILON)
+    {
+        float t1 = (minB.y - origin.y) / dir.y;
+        float t2 = (maxB.y - origin.y) / dir.y;
+        if (t1 > t2) std::swap(t1, t2);
+        tmin = std::max(tmin, t1);
+        tmax = std::min(tmax, t2);
+    }
+    else // Ray parallel to Y slabs
+    {
+        if (origin.y < minB.y || origin.y > maxB.y)
+            return false; // Ray misses AABB entirely
+    }
 
-    if (tymin > tymax) std::swap(tymin, tymax);
+    // Z-axis slab intersection
+    if (std::abs(dir.z) > EPSILON)
+    {
+        float t1 = (minB.z - origin.z) / dir.z;
+        float t2 = (maxB.z - origin.z) / dir.z;
+        if (t1 > t2) std::swap(t1, t2);
+        tmin = std::max(tmin, t1);
+        tmax = std::min(tmax, t2);
+    }
+    else // Ray parallel to Z slabs
+    {
+        if (origin.z < minB.z || origin.z > maxB.z)
+            return false; // Ray misses AABB entirely
+    }
 
-    if ((tmin > tymax) || (tymin > tmax))
+    // Check intersection validity
+    if (tmin > tmax || tmax < 0.0f)
         return false;
 
-    if (tymin > tmin) tmin = tymin;
-    if (tymax < tmax) tmax = tymax;
-
-    float tzmin = (minB.z - origin.z) / dir.z;
-    float tzmax = (maxB.z - origin.z) / dir.z;
-
-    if (tzmin > tzmax) std::swap(tzmin, tzmax);
-
-    if ((tmin > tzmax) || (tzmin > tmax))
-        return false;
-
-    if (tzmin > tmin) tmin = tzmin;
-    if (tzmax < tmax) tmax = tzmax;
-
-    if (tmax < 0) return false;
-
-    t = tmin;
-    if (t < 0) t = tmax;
+    t = (tmin >= 0.0f) ? tmin : tmax;
     return true;
 }
 
@@ -547,9 +589,12 @@ void EditorLayer::DrawInspectorPanel()
         if (m_SelectedEntity.HasComponent<TagComponent>())
         {
             auto& tag = m_SelectedEntity.GetComponent<TagComponent>();
-            char buffer[256];
+            char buffer[EditorConstants::MAX_TAG_LENGTH];
             memset(buffer, 0, sizeof(buffer));
+            
+            // Safe string copy with guaranteed null termination
             strncpy(buffer, tag.Tag.c_str(), sizeof(buffer) - 1);
+            buffer[sizeof(buffer) - 1] = '\0'; // Ensure null termination
             
             // Draw a simpler name field at the top
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
@@ -617,13 +662,19 @@ void EditorLayer::DrawInspectorPanel()
                 );
                 if (rotationDeg != tc.Rotation) tc.Rotation = rotationDeg;
 
-                // Scale
+                // Scale - clamp BEFORE saving to history
                 DrawVec3ControlVertical("Scale", tc.Scale, 1.0f,
-                   [&]() { m_TransformEditState.savedTransform = tc; },
+                   [&]() { 
+                       // Clamp before saving
+                       tc.Scale.x = std::max(tc.Scale.x, EditorConstants::MIN_SCALE);
+                       tc.Scale.y = std::max(tc.Scale.y, EditorConstants::MIN_SCALE);
+                       tc.Scale.z = std::max(tc.Scale.z, EditorConstants::MIN_SCALE);
+                       m_TransformEditState.savedTransform = tc; 
+                   },
                    [&]() {
-                       if (tc.Scale.x < 0.001f) tc.Scale.x = 0.001f;
-                       if (tc.Scale.y < 0.001f) tc.Scale.y = 0.001f;
-                       if (tc.Scale.z < 0.001f) tc.Scale.z = 0.001f;
+                       tc.Scale.x = std::max(tc.Scale.x, EditorConstants::MIN_SCALE);
+                       tc.Scale.y = std::max(tc.Scale.y, EditorConstants::MIN_SCALE);
+                       tc.Scale.z = std::max(tc.Scale.z, EditorConstants::MIN_SCALE);
                        EditorBridge::SubmitTransformChange(m_SelectedEntity, m_TransformEditState.savedTransform, tc); 
                    }
                 );
@@ -757,8 +808,9 @@ void EditorLayer::DrawViewportPanel()
             glm::mat4 deltaMatrix(1.0f);
 
             bool snap = Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL);
-            float snapValue = 0.5f;
-            if (m_GizmoType == ImGuizmo::ROTATE) snapValue = 45.0f;
+            float snapValue = EditorConstants::GIZMO_TRANSLATE_SNAP;
+            if (m_GizmoType == ImGuizmo::ROTATE) snapValue = EditorConstants::GIZMO_ROTATE_SNAP;
+            else if (m_GizmoType == ImGuizmo::SCALE) snapValue = EditorConstants::GIZMO_SCALE_SNAP;
             float snapValues[3] = { snapValue, snapValue, snapValue };
 
             ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),

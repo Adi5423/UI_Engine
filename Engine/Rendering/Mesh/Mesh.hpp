@@ -45,12 +45,13 @@ private:
 
         m_VertexArray = std::make_unique<VertexArray>();
 
-        // Upload vertices
-        VertexBuffer* vb = new VertexBuffer(vertices.data(), vertices.size() * sizeof(Vertex));
-        IndexBuffer*  ib = new IndexBuffer(indices.data(), (uint32_t)indices.size());
+        // Create buffers with unique_ptr ownership
+        auto vb = std::make_unique<VertexBuffer>(vertices.data(), vertices.size() * sizeof(Vertex));
+        auto ib = std::make_unique<IndexBuffer>(indices.data(), (uint32_t)indices.size());
 
         m_VertexArray->Bind();
-        vb->Bind();
+        // Transfer ownership to prevent VBO deletion (Update: AddVertexBuffer now just stores/binds, layout is set below)
+        m_VertexArray->AddVertexBuffer(std::move(vb));
 
         // Position
         glEnableVertexAttribArray(0);
@@ -60,7 +61,8 @@ private:
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
 
-        m_VertexArray->SetIndexBuffer(ib);
+        // Transfer ownership to VertexArray (prevents memory leak)
+        m_VertexArray->SetIndexBuffer(std::move(ib));
 
         // Calculate AABB
         if (!vertices.empty())

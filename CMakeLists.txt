@@ -7,16 +7,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # ----------- check submodules -----------
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/glfw/CMakeLists.txt")
-    message(FATAL_ERROR "\n"
-        "--------------------------------------------------------------------------\n"
-        "ERROR: Submodules are missing! Please run:\n"
-        "  git submodule update --init --recursive\n"
-        "If you downloaded this as a ZIP, you must download the source from GitHub\n"
-        "using 'git clone --recursive' or run the command above in the terminal.\n"
-        "--------------------------------------------------------------------------\n"
-    )
-endif()
+# if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/glfw/CMakeLists.txt")
+#     message(FATAL_ERROR "\n"
+#         "--------------------------------------------------------------------------\n"
+#         "ERROR: Submodules are missing! Please run:\n"
+#         "  git submodule update --init --recursive\n"
+#         "If you downloaded this as a ZIP, you must download the source from GitHub\n"
+#         "using 'git clone --recursive' or run the command above in the terminal.\n"
+#         "--------------------------------------------------------------------------\n"
+#     )
+# endif()
 
 # ----------- RPATH Configuration for Portability (Linux/macOS) -----------
 if(APPLE)

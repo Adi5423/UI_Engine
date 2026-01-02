@@ -41,7 +41,10 @@ void Scene::OnUpdate(float ts)
 {
     // -------------------------------------------------------------------------
     // Duplication Sync Logic (Delta Propagation)
+    // Professional Optimization: Use squared length to avoid expensive sqrt
     // -------------------------------------------------------------------------
+    constexpr float EPSILON_SQ = 0.0001f * 0.0001f; // Squared epsilon
+    
     auto view = m_Registry.view<TransformComponent, DuplicationComponent>();
     for (auto entity : view)
     {
@@ -68,11 +71,11 @@ void Scene::OnUpdate(float ts)
                 glm::vec3 rotDelta = sourceTC.Rotation - dup.LastSourceRotation;
                 glm::vec3 scaleDelta = sourceTC.Scale - dup.LastSourceScale;
 
-                // If source moved, apply delta to duplicate
+                // Use squared length comparison to avoid sqrt() call
                 bool changed = false;
-                if (glm::length(posDelta) > 0.0001f) { tc.Position += posDelta; changed = true; }
-                if (glm::length(rotDelta) > 0.0001f) { tc.Rotation += rotDelta; changed = true; }
-                if (glm::length(scaleDelta) > 0.0001f) { tc.Scale += scaleDelta; changed = true; }
+                if (glm::dot(posDelta, posDelta) > EPSILON_SQ) { tc.Position += posDelta; changed = true; }
+                if (glm::dot(rotDelta, rotDelta) > EPSILON_SQ) { tc.Rotation += rotDelta; changed = true; }
+                if (glm::dot(scaleDelta, scaleDelta) > EPSILON_SQ) { tc.Scale += scaleDelta; changed = true; }
 
                 if (changed)
                 {
@@ -88,26 +91,28 @@ void Scene::OnUpdate(float ts)
 
 Entity Scene::GetEntityByUUID(Core::UUID uuid)
 {
-    if (m_EntityMap.find(uuid) != m_EntityMap.end())
+    // Single lookup optimization - avoids double hash table access
+    auto it = m_EntityMap.find(uuid);
+    if (it != m_EntityMap.end())
     {
-        entt::entity handle = m_EntityMap.at(uuid);
+        entt::entity handle = it->second;
         if (m_Registry.valid(handle))
             return Entity{ handle, this };
         else
-            m_EntityMap.erase(uuid); // Clean up stale entry
+            m_EntityMap.erase(it); // Clean up stale entry
     }
     
-    // Fallback: search just in case (and repopulate map)
+    // Fallback: search registry if not in map (shouldn't happen in normal flow)
     auto view = m_Registry.view<IDComponent>();
     for (auto entity : view)
     {
         const auto& id = view.get<IDComponent>(entity).ID;
         if (id == uuid)
         {
-            m_EntityMap[uuid] = entity;
+            m_EntityMap[uuid] = entity; // Re-populate cache
             return Entity{ entity, this };
         }
     }
 
-    return Entity{};
+    return Entity{}; // Not found
 }

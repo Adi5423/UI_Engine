@@ -9,8 +9,7 @@ VertexArray::VertexArray()
 VertexArray::~VertexArray()
 {
     glDeleteVertexArrays(1, &m_RendererID);
-    delete m_VertexBuffer;
-    delete m_IndexBuffer;
+    // unique_ptr automatically deletes buffers - no manual delete needed
 }
 
 void VertexArray::Bind() const
@@ -23,29 +22,19 @@ void VertexArray::Unbind() const
     glBindVertexArray(0);
 }
 
-void VertexArray::AddVertexBuffer(VertexBuffer* vb)
+void VertexArray::AddVertexBuffer(std::unique_ptr<VertexBuffer> vb)
 {
-    m_VertexBuffer = vb;
-
     Bind();
     vb->Bind();
-
-    // layout: position only (vec3)
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,                      // index
-        3,                      // vec3
-        GL_FLOAT,               // type
-        GL_FALSE,               // normalized
-        sizeof(float) * 3,      // stride
-        (void*)0                // offset
-    );
+    
+    m_VertexBuffer = std::move(vb); // Transfer ownership
 }
 
-void VertexArray::SetIndexBuffer(IndexBuffer* ib)
-{
-    m_IndexBuffer = ib;
 
+void VertexArray::SetIndexBuffer(std::unique_ptr<IndexBuffer> ib)
+{
     Bind();
     ib->Bind();
+    
+    m_IndexBuffer = std::move(ib); // Transfer ownership
 }

@@ -14,6 +14,9 @@ public:
     void Bind() const;
     void Unbind() const;
 
+    // Check if shader compiled and linked successfully
+    bool IsValid() const { return m_RendererID != 0; }
+
     // Uniform helpers
     void SetMat4(const std::string& name, const glm::mat4& value);
     void SetFloat3(const std::string& name, const glm::vec3& value);
