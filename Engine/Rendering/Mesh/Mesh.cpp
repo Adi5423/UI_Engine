@@ -1,12 +1,17 @@
 #include "Mesh.hpp"
 #include <vector>
 #include <cmath>
+#include <unordered_map>
 
 //
 // ---------- 3D CUBE ----------
 //
 std::shared_ptr<Mesh> Mesh::CreateCube()
 {
+    static std::shared_ptr<Mesh> s_CubeMesh = nullptr;
+    if (s_CubeMesh)
+        return s_CubeMesh;
+
     std::vector<Vertex> vertices =
     {
         // ----------------------------------------------------
@@ -85,9 +90,9 @@ std::shared_ptr<Mesh> Mesh::CreateCube()
         20,21,22, 22,23,20
     };
 
-    auto mesh = std::shared_ptr<Mesh>(new Mesh(vertices, indices));
-    mesh->m_Type = PrimitiveType::Cube;
-    return mesh;
+    s_CubeMesh = std::shared_ptr<Mesh>(new Mesh(vertices, indices));
+    s_CubeMesh->m_Type = PrimitiveType::Cube;
+    return s_CubeMesh;
 }
 
 
@@ -96,6 +101,10 @@ std::shared_ptr<Mesh> Mesh::CreateCube()
 //
 std::shared_ptr<Mesh> Mesh::CreateTriangle3D()
 {
+    static std::shared_ptr<Mesh> s_TriangleMesh = nullptr;
+    if (s_TriangleMesh)
+        return s_TriangleMesh;
+
     // Creates a pyramid with a square base and triangular sides
     // Each side face needs its own normal for proper lighting
     
@@ -145,9 +154,9 @@ std::shared_ptr<Mesh> Mesh::CreateTriangle3D()
         3, 0, 7    // Left side:  uses apex vertex 7
     };
 
-    auto mesh = std::shared_ptr<Mesh>(new Mesh(vertices, indices));
-    mesh->m_Type = PrimitiveType::Triangle3D;
-    return mesh;
+    s_TriangleMesh = std::shared_ptr<Mesh>(new Mesh(vertices, indices));
+    s_TriangleMesh->m_Type = PrimitiveType::Triangle3D;
+    return s_TriangleMesh;
 }
 
 //
@@ -159,6 +168,10 @@ std::shared_ptr<Mesh> Mesh::CreateCircle(uint32_t segments)
     // segments: Number of edge segments (minimum 3)
     
     if (segments < 3) segments = 3;
+
+    static std::unordered_map<uint32_t, std::shared_ptr<Mesh>> s_CircleCache;
+    if (s_CircleCache.find(segments) != s_CircleCache.end())
+        return s_CircleCache[segments];
 
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
@@ -190,6 +203,8 @@ std::shared_ptr<Mesh> Mesh::CreateCircle(uint32_t segments)
 
     auto mesh = std::shared_ptr<Mesh>(new Mesh(vertices, indices));
     mesh->m_Type = PrimitiveType::Circle;
+    
+    s_CircleCache[segments] = mesh;
     return mesh;
 }
 
@@ -198,6 +213,10 @@ std::shared_ptr<Mesh> Mesh::CreateCircle(uint32_t segments)
 //
 std::shared_ptr<Mesh> Mesh::CreatePlane()
 {
+    static std::shared_ptr<Mesh> s_PlaneMesh = nullptr;
+    if (s_PlaneMesh)
+        return s_PlaneMesh;
+
     // BUG-014 NOTE: Normals are in object-space (pointing up in local coordinates)
     // They will be transformed to world-space by the model matrix in the shader
     std::vector<Vertex> vertices =
@@ -210,7 +229,7 @@ std::shared_ptr<Mesh> Mesh::CreatePlane()
 
     std::vector<uint32_t> indices = { 0, 1, 2, 2, 3, 0 };
 
-    auto mesh = std::shared_ptr<Mesh>(new Mesh(vertices, indices));
-    mesh->m_Type = PrimitiveType::Plane;
-    return mesh;
+    s_PlaneMesh = std::shared_ptr<Mesh>(new Mesh(vertices, indices));
+    s_PlaneMesh->m_Type = PrimitiveType::Plane;
+    return s_PlaneMesh;
 }

@@ -110,7 +110,15 @@ void SceneRenderer::RenderEditor(Scene* scene, const EditorCamera& camera, Entit
     m_Framebuffer->Bind();
     
     // 1. Clear Command
-    // BUG-002 FIX: Removed redundant glEnable(GL_DEPTH_TEST) - already enabled in Renderer::Init()
+    // FIX: Explicitly enable Depth Test to ensure correct Z-sorting
+    // ImGui or other passes might have disabled it
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    
+    // FIX: Disable Face Culling to ensure planes are double-sided
+    // This fixes "invisible planes" when looking from behind
+    glDisable(GL_CULL_FACE);
+
     Renderer::Clear({ 0.12f, 0.12f, 0.14f, 1.0f });
 
     // 2. Setup Scene Context
