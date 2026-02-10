@@ -77,6 +77,24 @@ public:
             return;
         }
 
+        // BUG-027 FIX: Validate OpenGL version
+        int major, minor;
+        glGetIntegerv(GL_MAJOR_VERSION, &major);
+        glGetIntegerv(GL_MINOR_VERSION, &minor);
+        CORE_INFO("OpenGL Version: {}.{}", major, minor);
+        
+        #ifdef __APPLE__
+            if (major < 4 || (major == 4 && minor < 1))
+            {
+                CORE_ERROR("OpenGL 4.1 or higher required! Got {}.{}", major, minor);
+            }
+        #else
+            if (major < 4 || (major == 4 && minor < 5))
+            {
+                CORE_WARN("OpenGL 4.5 recommended, got {}.{}", major, minor);
+            }
+        #endif
+
         // Set User Pointer to access WindowData in callbacks
         glfwSetWindowUserPointer(m_Window, &m_Data);
 

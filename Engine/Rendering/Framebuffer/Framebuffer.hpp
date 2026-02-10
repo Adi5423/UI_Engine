@@ -26,5 +26,6 @@ private:
     uint32_t m_ColorAttachment = 0;
     uint32_t m_DepthAttachment = 0;
 
-    uint32_t m_Width, m_Height;
+    // BUG-003 FIX: Initialize to prevent undefined behavior
+    uint32_t m_Width = 0, m_Height = 0;
 };

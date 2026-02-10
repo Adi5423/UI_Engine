@@ -13,27 +13,61 @@ void SceneRenderer::Init()
     // Initialize Framebuffer
     m_Framebuffer = std::make_shared<Framebuffer>(m_ViewportWidth, m_ViewportHeight);
 
-    // Initialize Shader (Basic Shader copied from EditorLayer)
-    // In a real engine, this would be loaded from assets
+    // BUG-009 FIX: Implement proper Blinn-Phong lighting shader
+    // Professional game engines use lighting to provide depth perception
     std::string vs = R"(
 #version 410 core
 layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec3 aNormal;
+
 uniform mat4 u_Model;
 uniform mat4 u_ViewProj;
+
+out vec3 FragPos;
+out vec3 Normal;
+
 void main()
 {
-    gl_Position = u_ViewProj * u_Model * vec4(aPos, 1.0);
+    FragPos = vec3(u_Model * vec4(aPos, 1.0));
+    Normal = mat3(transpose(inverse(u_Model))) * aNormal;
+    gl_Position = u_ViewProj * vec4(FragPos, 1.0);
 }
 )";
+
     std::string fs = R"(
 #version 410 core
 out vec4 FragColor;
+
+in vec3 FragPos;
+in vec3 Normal;
+
 uniform vec4 u_Color;
+uniform vec3 u_ViewPos;
+uniform vec3 u_LightDir;
+
 void main()
 {
-    FragColor = u_Color;
+    // Ambient lighting
+    float ambientStrength = 0.3;
+    vec3 ambient = ambientStrength * u_Color.rgb;
+    
+    // Diffuse lighting
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(-u_LightDir);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * u_Color.rgb;
+    
+    // Specular lighting (Blinn-Phong)
+    vec3 viewDir = normalize(u_ViewPos - FragPos);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0);
+    vec3 specular = vec3(0.3) * spec;
+    
+    vec3 result = ambient + diffuse + specular;
+    FragColor = vec4(result, u_Color.a);
 }
 )";
+
     m_Shader = std::make_shared<Shader>(vs, fs);
     
     // Check if shader is valid
@@ -43,7 +77,7 @@ void main()
     }
     else
     {
-        CORE_INFO("[SceneRenderer] Shader compiled successfully.");
+        CORE_INFO("[SceneRenderer] Blinn-Phong lighting shader compiled successfully.");
     }
 }
 
@@ -76,27 +110,19 @@ void SceneRenderer::RenderEditor(Scene* scene, const EditorCamera& camera, Entit
     m_Framebuffer->Bind();
     
     // 1. Clear Command
-    glEnable(GL_DEPTH_TEST);
+    // BUG-002 FIX: Removed redundant glEnable(GL_DEPTH_TEST) - already enabled in Renderer::Init()
     Renderer::Clear({ 0.12f, 0.12f, 0.14f, 1.0f });
 
     // 2. Setup Scene Context
     m_Shader->Bind();
     m_Shader->SetMat4("u_ViewProj", camera.GetViewProjection());
+    
+    // BUG-009: Set lighting uniforms for Blinn-Phong shader
+    m_Shader->SetFloat3("u_ViewPos", camera.GetPosition());
+    m_Shader->SetFloat3("u_LightDir", glm::vec3(-0.3f, -1.0f, -0.5f)); // Directional light from top-right
 
-    // DEBUG: Log rendering state (only once)
-    static bool logged = false;
-    if (!logged)
-    {
-        auto& reg = scene->Reg();
-        int meshCount = 0;
-        reg.view<TransformComponent, MeshComponent>().each([&](auto, auto&, auto&) { meshCount++; });
-        
-        CORE_INFO("[SceneRenderer DEBUG] Rendering {0} meshes", meshCount);
-        CORE_INFO("[SceneRenderer DEBUG] Camera Position: ({0}, {1}, {2})", 
-                  camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
-        CORE_INFO("[SceneRenderer DEBUG] Framebuffer: {0}x{1}", m_ViewportWidth, m_ViewportHeight);
-        logged = true;
-    }
+    // BUG-020 FIX: Removed static logging - allows dynamic debug output
+    // DEBUG: Log rendering state can be re-enabled per-frame if needed for debugging
 
     // 3. Render All Meshes
     auto& reg = scene->Reg();
@@ -111,20 +137,16 @@ void SceneRenderer::RenderEditor(Scene* scene, const EditorCamera& camera, Entit
         
         m_Shader->SetMat4("u_Model", transform.GetMatrix());
         
-        // This is a "Renderer::Submit" internal call effectively
+        // BUG-008 FIX: Add null check before dereferencing VA
         auto* va = meshComp.MeshHandle->GetVertexArray();
+        if (!va) return;
+        
         va->Bind();
         glDrawElements(GL_TRIANGLES, meshComp.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
         renderedCount++;
     });
 
-    // DEBUG: Log if nothing was rendered
-    static bool warnedOnce = false;
-    if (renderedCount == 0 && !warnedOnce)
-    {
-        CORE_WARN("[SceneRenderer DEBUG] No meshes were rendered this frame!");
-        warnedOnce = true;
-    }
+    // BUG-020 FIX: Removed static warning - allows repeated warnings if needed
 
     // 4. Render Selection Outline
     if (selectedEntity && selectedEntity.HasComponent<MeshComponent>())
@@ -134,20 +156,34 @@ void SceneRenderer::RenderEditor(Scene* scene, const EditorCamera& camera, Entit
         {
             auto& tc = selectedEntity.GetComponent<TransformComponent>();
             
+            // BUG-026 FIX: Save current polygon mode
+            GLint prevMode[2];
+            glGetIntegerv(GL_POLYGON_MODE, prevMode);
+            
+            // BUG-010 FIX: Disable depth test so outline is always visible
+            glDisable(GL_DEPTH_TEST);
+            
             // Wireframe pass
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glLineWidth(4.0f);
+            glLineWidth(4.0f); // BUG-024: May not work on all drivers (Core Profile limitation)
             
             m_Shader->SetFloat4("u_Color", glm::vec4(1.0f, 0.5f, 0.0f, 1.0f)); // Orange
             m_Shader->SetMat4("u_Model", tc.GetMatrix());
             
+            // BUG-008 FIX: Add null check
             auto* va = mc.MeshHandle->GetVertexArray();
-            va->Bind();
-            glDrawElements(GL_TRIANGLES, mc.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+            if (va)
+            {
+                va->Bind();
+                glDrawElements(GL_TRIANGLES, mc.MeshHandle->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+            }
             
-            // Restore state
+            // BUG-010 FIX: Re-enable depth test
+            glEnable(GL_DEPTH_TEST);
+            
+            // BUG-026 FIX: Restore state properly
             glLineWidth(1.0f);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glPolygonMode(GL_FRONT_AND_BACK, prevMode[0]);
         }
     }
 

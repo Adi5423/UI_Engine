@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 #include <cstdint>
+#include <algorithm> // for std::min/max
+#include <limits>    // for std::numeric_limits
 #include <glm/glm.hpp>
 #include <Rendering/Buffers/VertexArray.hpp>
 
@@ -35,8 +37,34 @@ public:
     uint32_t GetIndexCount() const { return m_IndexCount; }
     PrimitiveType GetType() const { return m_Type; }
 
+    // BUG-017 NOTE: AABB is in object-space. Use GetWorldAABB for transformed bounds.
     const glm::vec3& GetMinAABB() const { return m_MinAABB; }
     const glm::vec3& GetMaxAABB() const { return m_MaxAABB; }
+
+    // BUG-017 FIX: Helper to get world-space AABB
+    std::pair<glm::vec3, glm::vec3> GetWorldAABB(const glm::mat4& transform) const
+    {
+        glm::vec3 min = m_MinAABB;
+        glm::vec3 max = m_MaxAABB;
+        
+        std::vector<glm::vec3> corners = {
+            {min.x, min.y, min.z}, {min.x, min.y, max.z},
+            {min.x, max.y, min.z}, {min.x, max.y, max.z},
+            {max.x, min.y, min.z}, {max.x, min.y, max.z},
+            {max.x, max.y, min.z}, {max.x, max.y, max.z}
+        };
+
+        glm::vec3 newMin(std::numeric_limits<float>::max());
+        glm::vec3 newMax(std::numeric_limits<float>::lowest());
+
+        for (const auto& v : corners)
+        {
+            glm::vec3 tr = glm::vec3(transform * glm::vec4(v, 1.0f));
+            newMin = glm::min(newMin, tr);
+            newMax = glm::max(newMax, tr);
+        }
+        return {newMin, newMax};
+    }
 
 private:
     Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
@@ -80,6 +108,9 @@ private:
                 m_MaxAABB.z = std::max(m_MaxAABB.z, v.Position.z);
             }
         }
+
+        // BUG-001 FIX: Unbind VAO to prevent OpenGL state pollution
+        m_VertexArray->Unbind();
     }
 
 private:

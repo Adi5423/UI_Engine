@@ -39,10 +39,11 @@ void EditorCamera::ProcessMouseMovement(float deltaX, float deltaY, bool constra
     m_Yaw += deltaX;
     m_Pitch += deltaY;
 
+    // BUG-007/BUG-019 FIX: Reduce clamp to prevent gimbal lock numerical instability
     if (constrainPitch)
     {
-        if (m_Pitch > 89.0f)  m_Pitch = 89.0f;
-        if (m_Pitch < -89.0f) m_Pitch = -89.0f;
+        if (m_Pitch > 88.5f)  m_Pitch = 88.5f;
+        if (m_Pitch < -88.5f) m_Pitch = -88.5f;
     }
 
     UpdateCameraVectors();

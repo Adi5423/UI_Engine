@@ -27,6 +27,10 @@ void ViewportInput::SetViewportBounds(float x, float y, float width, float heigh
 
 bool ViewportInput::IsMouseInsideViewport()
 {
+    // BUG-005 FIX: Validate window and viewport bounds before checking
+    if (!s_Window || s_VP_W <= 0 || s_VP_H <= 0)
+        return false;
+
     double mx, my;
     glfwGetCursorPos(s_Window, &mx, &my);
 

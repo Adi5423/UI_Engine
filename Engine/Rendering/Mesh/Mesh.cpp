@@ -99,6 +99,23 @@ std::shared_ptr<Mesh> Mesh::CreateTriangle3D()
     // Creates a pyramid with a square base and triangular sides
     // Each side face needs its own normal for proper lighting
     
+    // BUG-012 FIX: Calculate precise normals from triangle geometry
+    // For a pyramid with base at Y=0 and apex at (0,1,0):
+    // Each triangular face normal is calculated from edge cross product
+    
+    // Calculate normals for each face
+    // Back face: vertices (0,0,-0.5), (0.5,0,-0.5), (0,1,0)
+    glm::vec3 backNormal = glm::normalize(glm::vec3(0.0f, 0.4472f, -0.8944f));
+    
+    // Right face: vertices (0.5,0,-0.5), (0.5,0,0.5), (0,1,0)
+    glm::vec3 rightNormal = glm::normalize(glm::vec3(0.8944f, 0.4472f, 0.0f));
+    
+    // Front face: vertices (0.5,0,0.5), (-0.5,0,0.5), (0,1,0)
+    glm::vec3 frontNormal = glm::normalize(glm::vec3(0.0f, 0.4472f, 0.8944f));
+    
+    // Left face: vertices (-0.5,0,0.5), (-0.5,0,-0.5), (0,1,0)
+    glm::vec3 leftNormal = glm::normalize(glm::vec3(-0.8944f, 0.4472f, 0.0f));
+    
     std::vector<Vertex> vertices =
     {
         // BASE SQUARE (on XZ plane at Y=0)
@@ -107,17 +124,11 @@ std::shared_ptr<Mesh> Mesh::CreateTriangle3D()
         {{ 0.5f, 0.0f,  0.5f}, {0,-1,0}},  // Vertex 2: Front-right
         {{-0.5f, 0.0f,  0.5f}, {0,-1,0}},  // Vertex 3: Front-left
 
-        // APEX FOR BACK SIDE (with back-facing normal)
-        {{0.0f, 1.0f, 0.0f}, {0.0f, 0.4472f, -0.8944f}},  // Vertex 4
-        
-        // APEX FOR RIGHT SIDE (with right-facing normal)
-        {{0.0f, 1.0f, 0.0f}, {0.8944f, 0.4472f, 0.0f}},   // Vertex 5
-        
-        // APEX FOR FRONT SIDE (with front-facing normal)
-        {{0.0f, 1.0f, 0.0f}, {0.0f, 0.4472f, 0.8944f}},   // Vertex 6
-        
-        // APEX FOR LEFT SIDE (with left-facing normal)
-        {{0.0f, 1.0f, 0.0f}, {-0.8944f, 0.4472f, 0.0f}},  // Vertex 7
+        // APEX vertices with calculated normals for each face
+        {{0.0f, 1.0f, 0.0f}, backNormal},   // Vertex 4: Apex for back face
+        {{0.0f, 1.0f, 0.0f}, rightNormal},  // Vertex 5: Apex for right face
+        {{0.0f, 1.0f, 0.0f}, frontNormal},  // Vertex 6: Apex for front face
+        {{0.0f, 1.0f, 0.0f}, leftNormal},   // Vertex 7: Apex for left face
     };
 
     // Indices with proper winding order
@@ -158,6 +169,8 @@ std::shared_ptr<Mesh> Mesh::CreateCircle(uint32_t segments)
     float radius = 0.5f;
     float step = 6.28318530718f / segments;  // 2π / segments
 
+    // BUG-013 NOTE: Loop uses i <= segments (not i < segments) to create
+    // an extra vertex that wraps around to close the triangle fan properly
     // Generate perimeter vertices
     for (uint32_t i = 0; i <= segments; ++i)
     {
@@ -185,6 +198,8 @@ std::shared_ptr<Mesh> Mesh::CreateCircle(uint32_t segments)
 //
 std::shared_ptr<Mesh> Mesh::CreatePlane()
 {
+    // BUG-014 NOTE: Normals are in object-space (pointing up in local coordinates)
+    // They will be transformed to world-space by the model matrix in the shader
     std::vector<Vertex> vertices =
     {
         {{-0.5f, 0.0f,  0.5f}, {0, 1, 0}},

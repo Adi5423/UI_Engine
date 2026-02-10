@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 #include "Buffer.hpp"
 
@@ -25,6 +26,8 @@ public:
 
 private:
     uint32_t m_RendererID = 0;
-    std::unique_ptr<VertexBuffer> m_VertexBuffer;
+    
+    // BUG-016 FIX: Support multiple VBOs for advanced rendering (instancing, multi-stream)
+    std::vector<std::unique_ptr<VertexBuffer>> m_VertexBuffers;
     std::unique_ptr<IndexBuffer> m_IndexBuffer;
 };

@@ -27,7 +27,8 @@ void VertexArray::AddVertexBuffer(std::unique_ptr<VertexBuffer> vb)
     Bind();
     vb->Bind();
     
-    m_VertexBuffer = std::move(vb); // Transfer ownership
+    // BUG-016 FIX: Append to vector instead of replacing
+    m_VertexBuffers.push_back(std::move(vb));
 }
 
 
@@ -37,4 +38,7 @@ void VertexArray::SetIndexBuffer(std::unique_ptr<IndexBuffer> ib)
     ib->Bind();
     
     m_IndexBuffer = std::move(ib); // Transfer ownership
+    
+    // BUG-006 FIX: Unbind VAO to prevent state pollution
+    Unbind();
 }

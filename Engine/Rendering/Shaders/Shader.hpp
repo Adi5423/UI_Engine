@@ -26,6 +26,9 @@ private:
     uint32_t m_RendererID = 0;
 
     int GetUniformLocation(const std::string& name);
+    
+    // BUG-025 FIX: Allow clearing cache for hot-reload support
+    void ClearUniformCache() { m_UniformLocationCache.clear(); }
 
     std::unordered_map<std::string, int> m_UniformLocationCache;
 };
