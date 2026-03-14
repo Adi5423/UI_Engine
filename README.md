@@ -252,6 +252,8 @@ This engine requires a modern core profile. On Mac, ensure you are using the `Re
 
 ## Contributing
 
+Till this time, This project is developed only by [@Adi5423](https://github.com/adi5423), whereas the contributors section having some glitch, but contributions and PRs are open.
+
 Contributions are welcome. Feel free to:
 
 - Report bugs by opening an issue
