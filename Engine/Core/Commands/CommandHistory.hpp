@@ -1,15 +1,17 @@
 #pragma once
 
 #include "Command.hpp"
-#include <stack>
+#include <deque>
 #include <memory>
 #include <iostream>
 
 /**
  * Professional Undo/Redo Manager
- * Uses the standard Two-Stack architecture:
- * - UndoStack: Stores executed commands (past)
+ * Uses bounded deque architecture:
+ * - UndoStack: Stores executed commands (past) — bounded to MAX_HISTORY_SIZE
  * - RedoStack: Stores undone commands (future)
+ * 
+ * CRIT-01 FIX: Uses std::deque to enforce MAX_HISTORY_SIZE by evicting oldest commands.
  */
 class CommandHistory
 {
@@ -18,7 +20,7 @@ public:
     ~CommandHistory() = default;
 
     /**
-     * LIMITATION: Hard limit to prevent infinite memory growth.
+     * Hard limit to prevent infinite memory growth.
      * Professional engines usually cap this (e.g., 256 or 1000).
      */
     static constexpr size_t MAX_HISTORY_SIZE = 500;
@@ -35,19 +37,16 @@ public:
         command->Execute();
 
         // 2. Push to Undo Stack
-        m_UndoStack.push(std::move(command));
+        m_UndoStack.push_back(std::move(command));
 
         // 3. Clear Redo Stack (History divergence)
-        while (!m_RedoStack.empty())
-        {
-            m_RedoStack.pop();
-        }
+        m_RedoStack.clear();
 
-        // 4. Maintenance (Max Size)
-        // Note: std::stack doesn't support removing from bottom easily. 
-        // For a true ring buffer, we'd use std::deque, but std::stack is requested/standard.
-        // If we really need to cap size for memory safety, we can switch underlying container 
-        // or just accept it grows until session end for this implementation scope.
+        // 4. CRIT-01 FIX: Enforce max size — evict oldest commands
+        while (m_UndoStack.size() > MAX_HISTORY_SIZE)
+        {
+            m_UndoStack.pop_front();
+        }
     }
 
     /**
@@ -59,14 +58,14 @@ public:
         if (m_UndoStack.empty()) return;
 
         // Pop from Undo
-        auto cmd = std::move(m_UndoStack.top());
-        m_UndoStack.pop();
+        auto cmd = std::move(m_UndoStack.back());
+        m_UndoStack.pop_back();
 
         // Undo action
         cmd->Undo();
 
         // Push to Redo
-        m_RedoStack.push(std::move(cmd));
+        m_RedoStack.push_back(std::move(cmd));
     }
 
     /**
@@ -78,14 +77,20 @@ public:
         if (m_RedoStack.empty()) return;
 
         // Pop from Redo
-        auto cmd = std::move(m_RedoStack.top());
-        m_RedoStack.pop();
+        auto cmd = std::move(m_RedoStack.back());
+        m_RedoStack.pop_back();
 
         // Execute action
         cmd->Execute();
 
         // Push to Undo
-        m_UndoStack.push(std::move(cmd));
+        m_UndoStack.push_back(std::move(cmd));
+
+        // Enforce size again after redo
+        while (m_UndoStack.size() > MAX_HISTORY_SIZE)
+        {
+            m_UndoStack.pop_front();
+        }
     }
 
     bool CanUndo() const { return !m_UndoStack.empty(); }
@@ -93,11 +98,11 @@ public:
 
     void Clear()
     {
-        while (!m_UndoStack.empty()) m_UndoStack.pop();
-        while (!m_RedoStack.empty()) m_RedoStack.pop();
+        m_UndoStack.clear();
+        m_RedoStack.clear();
     }
 
 private:
-    std::stack<std::unique_ptr<ICommand>> m_UndoStack;
-    std::stack<std::unique_ptr<ICommand>> m_RedoStack;
+    std::deque<std::unique_ptr<ICommand>> m_UndoStack;
+    std::deque<std::unique_ptr<ICommand>> m_RedoStack;
 };

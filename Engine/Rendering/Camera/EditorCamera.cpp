@@ -1,5 +1,6 @@
 #include "EditorCamera.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
 
 EditorCamera::EditorCamera(float fov, float aspect, float nearClip, float farClip)
     : m_FOV(fov), m_Aspect(aspect), m_Near(nearClip), m_Far(farClip)
@@ -24,6 +25,9 @@ void EditorCamera::SetViewportSize(float width, float height)
 // ---------------------------------------------------
 void EditorCamera::ProcessKeyboard(const glm::vec3& dir, float deltaTime)
 {
+    // MED-09 FIX: Clamp deltaTime to prevent teleportation on frame spikes
+    deltaTime = std::min(deltaTime, 0.1f);
+    
     float velocity = m_MovementSpeed * deltaTime;
     m_Position += m_Front * dir.z * velocity;
     m_Position += m_Right * dir.x * velocity;

@@ -76,7 +76,7 @@ cmake -S . -B build
 ### Build
 
 ```bash
-cmake --build build
+
 ```
 
 Or for multi-core compilation:

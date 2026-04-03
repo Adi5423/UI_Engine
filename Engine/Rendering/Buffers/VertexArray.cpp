@@ -1,25 +1,26 @@
 #include "VertexArray.hpp"
 #include <glad/glad.h>
+#include <Core/GLDebug.hpp>
 
 VertexArray::VertexArray()
 {
-    glGenVertexArrays(1, &m_RendererID);
+    GL_CALL(glGenVertexArrays(1, &m_RendererID));
 }
 
 VertexArray::~VertexArray()
 {
-    glDeleteVertexArrays(1, &m_RendererID);
+    GL_CALL(glDeleteVertexArrays(1, &m_RendererID));
     // unique_ptr automatically deletes buffers - no manual delete needed
 }
 
 void VertexArray::Bind() const
 {
-    glBindVertexArray(m_RendererID);
+    GL_CALL(glBindVertexArray(m_RendererID));
 }
 
 void VertexArray::Unbind() const
 {
-    glBindVertexArray(0);
+    GL_CALL(glBindVertexArray(0));
 }
 
 void VertexArray::AddVertexBuffer(std::unique_ptr<VertexBuffer> vb)

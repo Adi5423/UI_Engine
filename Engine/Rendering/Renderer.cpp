@@ -42,4 +42,8 @@ void Renderer::Submit(const std::shared_ptr<Mesh>& mesh,
                    mesh->GetIndexCount(),
                    GL_UNSIGNED_INT,
                    nullptr);
+
+    // HIGH-02 FIX: Unbind to prevent state pollution (especially for ImGui)
+    va->Unbind();
+    shader.Unbind();
 }

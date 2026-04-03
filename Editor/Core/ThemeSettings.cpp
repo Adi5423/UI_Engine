@@ -14,6 +14,20 @@ static json g_ThemeJSON; // loaded json
 
 static std::string GetThemeFilePathInternal() { return "settings/theme/params.json"; }
 
+// HIGH-06 FIX: Validate that a path stays within allowed directory
+static bool IsPathSafe(const std::string& path)
+{
+    auto canonical = std::filesystem::weakly_canonical(path);
+    auto settingsDir = std::filesystem::weakly_canonical("settings");
+    
+    // Ensure the path starts with the settings directory components
+    auto [mismatch_settings, mismatch_path] = std::mismatch(
+        settingsDir.begin(), settingsDir.end(),
+        canonical.begin(), canonical.end()
+    );
+    return mismatch_settings == settingsDir.end();
+}
+
 void ThemeSettings::EnsureDirs()
 {
     std::filesystem::create_directories("settings/theme");
@@ -24,6 +38,14 @@ void ThemeSettings::Init()
     EnsureDirs();
 
     std::string path = GetThemeFilePathInternal();
+
+    // HIGH-06 FIX: Validate path before I/O
+    if (!IsPathSafe(path))
+    {
+        CORE_ERROR("[Theme] Path traversal detected! Refusing to load.");
+        UseDefaultTheme = true;
+        return;
+    }
 
     if (!std::filesystem::exists(path))
     {
@@ -139,6 +161,14 @@ void ThemeSettings::SaveThemeToJSON()
 
     EnsureDirs();
     std::string path = GetThemeFilePathInternal();
+
+    // HIGH-06 FIX: Validate path before writing
+    if (!IsPathSafe(path))
+    {
+        CORE_ERROR("[Theme] Path traversal detected! Refusing to save.");
+        return;
+    }
+
     std::ofstream out(path);
     if (!out.is_open())
     {

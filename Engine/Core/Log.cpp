@@ -33,12 +33,17 @@ namespace Core {
 
     void Log::Logger::Print(LogLevel level, const std::string& message)
     {
-        // Get time
+        // HIGH-05 FIX: Thread-safe time formatting
         auto t = std::time(nullptr);
-        auto tm = *std::localtime(&t);
+        struct tm tm_buf;
+#ifdef _WIN32
+        localtime_s(&tm_buf, &t);
+#else
+        localtime_r(&t, &tm_buf);
+#endif
         
         std::stringstream timeStr;
-        timeStr << std::put_time(&tm, "%H:%M:%S");
+        timeStr << std::put_time(&tm_buf, "%H:%M:%S");
 
         // -- Console Output (with colors) --
         const char* colorCode = "";
@@ -63,14 +68,19 @@ namespace Core {
                   << resetCode << std::endl;
 
         // -- File Output (no colors) --
-            if (Log::s_LogFile.is_open())
+        if (Log::s_LogFile.is_open())
+        {
+            Log::s_LogFile << "[" << m_Name << "] " 
+                           << "[" << timeStr.str() << "] "
+                           << levelStr << ": " 
+                           << message 
+                           << std::endl;
+
+            // MED-03 FIX: Only flush on Error/Fatal to avoid I/O bottleneck
+            if (level >= LogLevel::Error)
             {
-                Log::s_LogFile << "[" << m_Name << "] " 
-                               << "[" << timeStr.str() << "] "
-                               << levelStr << ": " 
-                               << message 
-                               << std::endl;
                 Log::s_LogFile.flush();
             }
+        }
     }
 }

@@ -14,6 +14,8 @@
 
 #include <Core/Input/Input.hpp>
 #include <Core/Input/ViewportInput.hpp>
+#include <Rendering/Mesh/Mesh.hpp>
+#include <Core/Resources/ResourceManager.hpp>
 
 EditorApplication::EditorApplication(const ApplicationSpecification& spec)
     : Application(spec)
@@ -76,6 +78,11 @@ void EditorApplication::OnUpdate(float deltaTime)
 void EditorApplication::OnShutdown()
 {
     std::cout << "[Editor] Shutting down layers...\n";
+
+    // CRIT-03 FIX: Release GPU resources BEFORE OpenGL context is destroyed
+    Mesh::ClearCaches();
+    ResourceManager::Clear();
+
     // Layers are deleted by LayerStack in Application destructor
     m_EditorLayer = nullptr;
     m_ImGuiLayer = nullptr;

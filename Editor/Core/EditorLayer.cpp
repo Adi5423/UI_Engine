@@ -17,6 +17,7 @@
 #include <glm/glm.hpp>
 
 #include <Core/Input/ViewportInput.hpp>
+#include <Core/Input/Input.hpp>
 #include <Scene/Scene.hpp>
 #include <Scene/Entity.hpp>
 #include <Scene/Components.hpp>
@@ -25,7 +26,7 @@
 #include <Core/ImGuiLayer.hpp>
 
 // ============================================================================
-// Professional Game Engine Constants (Unity/Unreal Standards)
+// Professional Game Engine Constants 
 // ============================================================================
 namespace EditorConstants
 {
@@ -165,8 +166,6 @@ void EditorLayer::OnAttach()
 
 // (Moved to top)
 
-#include <Core/Input/Input.hpp>
-
 glm::vec2 EditorLayer::WorldToScreen(const glm::vec3& worldPos, const glm::mat4& view, 
                                       const glm::mat4& proj, const glm::vec2& viewportSize, 
                                       const glm::vec2& viewportPos)
@@ -187,6 +186,9 @@ glm::vec2 EditorLayer::WorldToScreen(const glm::vec3& worldPos, const glm::mat4&
 
 void EditorLayer::OnDetach()
 {
+    // CRIT-02 FIX: Clear command history to prevent dangling Scene* pointers
+    m_CommandHistory.Clear();
+    
     EditorBridge::Init(nullptr); // Clear bridge pointer to prevent use-after-free
     m_ActiveScene.reset();
     m_SceneRenderer.reset();
@@ -542,7 +544,7 @@ void EditorLayer::DrawHierarchyPanel()
                 // However, user wants everything professional. I'll stick to what Bridge has or add to Bridge.
                 // For now, I'll use SceneAPI but recognize it won't be undoable. 
                 // To be safe, I'll add a placeholder or update it.
-                SceneAPI::CreateCameraEntity(*m_ActiveScene);
+                EditorBridge::SubmitCreateCamera(m_ActiveScene.get());
             }
 
             ImGui::Separator();

@@ -192,8 +192,15 @@ void SceneRenderer::RenderEditor(Scene* scene, const EditorCamera& camera, Entit
             // BUG-026 FIX: Restore state properly
             glLineWidth(1.0f);
             glPolygonMode(GL_FRONT_AND_BACK, prevMode[0]);
+
+            // HIGH-01 FIX: Restore default color so next frame starts clean
+            m_Shader->SetFloat4("u_Color", glm::vec4(0.2f, 0.7f, 1.0f, 1.0f));
         }
     }
+
+    // HIGH-01 FIX: Unbind shader and VAO to prevent state pollution into ImGui
+    m_Shader->Unbind();
+    glBindVertexArray(0);
 
     m_Framebuffer->Unbind();
 }

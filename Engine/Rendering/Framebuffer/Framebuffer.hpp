@@ -9,6 +9,12 @@ public:
     Framebuffer(uint32_t width, uint32_t height);
     ~Framebuffer();
 
+    // LOW-04 FIX: GPU resources cannot be safely copied
+    Framebuffer(const Framebuffer&) = delete;
+    Framebuffer& operator=(const Framebuffer&) = delete;
+    Framebuffer(Framebuffer&&) = delete;
+    Framebuffer& operator=(Framebuffer&&) = delete;
+
     void Bind();
     void Unbind();
 

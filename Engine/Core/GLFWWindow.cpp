@@ -9,6 +9,8 @@
 #include "Events/MouseEvent.hpp"
 #include "Log.hpp"
 
+static bool s_GLFWInitialized = false;
+
 class GLFWWindow : public Window
 {
 public:
@@ -22,25 +24,33 @@ public:
         Shutdown();
     }
 
+    static void GLFWErrorCallback(int error, const char* description)
+    {
+        CORE_ERROR("GLFW Error (", error, "): ", description);
+    }
+
     void Init(const WindowProps& props)
     {
         m_Data.Title = props.Title;
         m_Data.Width = props.Width;
         m_Data.Height = props.Height;
 
-        CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
+        CORE_INFO("Creating window ", props.Title, " (", props.Width, ", ", props.Height, ")");
 
-        if (!glfwInit())
+        if (!s_GLFWInitialized)
         {
-            CORE_ERROR("Failed to initialize GLFW!");
-            return;
+            int success = glfwInit();
+            if (success)
+            {
+                s_GLFWInitialized = true;
+                glfwSetErrorCallback(GLFWErrorCallback);
+            }
+            else
+            {
+                CORE_ERROR("Failed to initialize GLFW!");
+                return;
+            }
         }
-
-        // Error callback
-        glfwSetErrorCallback([](int error, const char* description)
-        {
-            CORE_ERROR("GLFW Error ({0}): {1}", error, description);
-        });
 
 #ifdef __APPLE__
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -81,7 +91,7 @@ public:
         int major, minor;
         glGetIntegerv(GL_MAJOR_VERSION, &major);
         glGetIntegerv(GL_MINOR_VERSION, &minor);
-        CORE_INFO("OpenGL Version: {}.{}", major, minor);
+        CORE_INFO("OpenGL Version: ", major, ".", minor);
         
         #ifdef __APPLE__
             if (major < 4 || (major == 4 && minor < 1))
@@ -212,13 +222,14 @@ public:
     }
 
 private:
-    GLFWwindow* m_Window;
+    GLFWwindow* m_Window = nullptr;  // CRIT-05 FIX: Prevent garbage pointer on init failure
 
     struct WindowData
     {
         std::string Title;
-        uint32_t Width, Height;
-        EventCallbackFn EventCallback;
+        uint32_t Width = 0, Height = 0;
+        // CRIT-06 FIX: Default no-op callback prevents crash if events fire before SetEventCallback
+        EventCallbackFn EventCallback = [](EventSystem::Event&) {};
     };
 
     WindowData m_Data;
@@ -227,5 +238,13 @@ private:
 // static create function
 Window* Window::Create(const WindowProps& props)
 {
-    return new GLFWWindow(props);
+    // CRIT-05 FIX: Validate initialization succeeded before returning
+    GLFWWindow* window = new GLFWWindow(props);
+    if (!window->GetNativeWindow())
+    {
+        CORE_ERROR("Failed to create Window! Terminating.");
+        delete window;
+        return nullptr;
+    }
+    return window;
 }

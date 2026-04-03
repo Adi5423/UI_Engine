@@ -15,7 +15,7 @@ Application::Application(const ApplicationSpecification& spec)
     if (s_Instance)
     {
         CORE_ERROR("Application already exists! Only one instance allowed.");
-        return;
+        std::abort(); // Hard-fail: dual singleton is always a programming error
     }
     s_Instance = this;
 
@@ -31,7 +31,7 @@ Application::Application(const ApplicationSpecification& spec)
     {
         // Bind Event Callback
         m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
-        CORE_INFO("Window created: {0} ({1}x{2})", spec.Name, spec.WindowWidth, spec.WindowHeight);
+        CORE_INFO("Window created: ", spec.Name, " (", spec.WindowWidth, "x", spec.WindowHeight, ")");
     }
     else
     {

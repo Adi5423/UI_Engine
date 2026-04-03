@@ -1,6 +1,7 @@
 #include "Scene.hpp"
 #include "Entity.hpp"
 #include "Components.hpp"
+#include <cmath>
 
 Scene::Scene()
 {
@@ -13,6 +14,15 @@ Entity Scene::CreateEntity(const std::string& name)
 
 Entity Scene::CreateEntityWithUUID(Core::UUID uuid, const std::string& name)
 {
+    // MED-01 FIX: Check for UUID collision before using it
+    if (m_EntityMap.count(uuid) > 0)
+    {
+        // This should never happen in practice, but if it does, generate a new UUID
+        // rather than silently overwriting the existing entity's map entry
+        Core::UUID newUUID;
+        uuid = newUUID;
+    }
+
     Entity entity = { m_Registry.create(), this };
     
     // Add ID Component
@@ -68,7 +78,15 @@ void Scene::OnUpdate(float ts)
             {
                 // Calculate Delta from last known source state
                 glm::vec3 posDelta = sourceTC.Position - dup.LastSourcePosition;
-                glm::vec3 rotDelta = sourceTC.Rotation - dup.LastSourceRotation;
+
+                // HIGH-08 FIX: Wrap Euler angle deltas to [-180, 180] to prevent
+                // violent snapping when angles cross 0/360 boundary
+                glm::vec3 rawRotDelta = sourceTC.Rotation - dup.LastSourceRotation;
+                glm::vec3 rotDelta;
+                rotDelta.x = std::fmod(rawRotDelta.x + 540.0f, 360.0f) - 180.0f;
+                rotDelta.y = std::fmod(rawRotDelta.y + 540.0f, 360.0f) - 180.0f;
+                rotDelta.z = std::fmod(rawRotDelta.z + 540.0f, 360.0f) - 180.0f;
+
                 glm::vec3 scaleDelta = sourceTC.Scale - dup.LastSourceScale;
 
                 // Use squared length comparison to avoid sqrt() call

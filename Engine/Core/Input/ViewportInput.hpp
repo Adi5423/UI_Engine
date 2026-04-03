@@ -24,4 +24,7 @@ private:
     static double s_LastX, s_LastY;
     static bool s_First;
     static bool s_CameraActive;
+
+    // MOUSE BUG FIX: Store the cursor position where camera mode was activated
+    static double s_LockX, s_LockY;
 };

@@ -4,6 +4,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <Core/Log.hpp>
 #include <Core/GLDebug.hpp>
+#include <vector>
 
 // ============================================================================
 // Shader Compilation - Professional Error Handling (Unity/Unreal Standard)
@@ -23,13 +24,13 @@ static uint32_t CompileShader(uint32_t type, const std::string& src)
         int length = 0;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
         
-        char* log = new char[length];
-        glGetShaderInfoLog(id, length, &length, log);
+        // HIGH-03 FIX: Use vector instead of raw new (safe when length==0)
+        std::vector<char> log(length > 0 ? length : 1, '\0');
+        glGetShaderInfoLog(id, length, &length, log.data());
         
         const char* shaderType = (type == GL_VERTEX_SHADER) ? "VERTEX" : "FRAGMENT";
-        CORE_ERROR("[Shader Compilation Failed] Type: {0}\n{1}", shaderType, log);
+        CORE_ERROR("[Shader Compilation Failed] Type: ", shaderType, "\n", log.data());
         
-        delete[] log;
         glDeleteShader(id); // Delete invalid shader
         return 0; // Return 0 to indicate failure
     }
@@ -64,10 +65,10 @@ Shader::Shader(const std::string& vertexSrc, const std::string& fragmentSrc)
         int length = 0;
         glGetProgramiv(m_RendererID, GL_INFO_LOG_LENGTH, &length);
         
-        char* log = new char[length];
-        glGetProgramInfoLog(m_RendererID, length, &length, log);
-        CORE_ERROR("[Shader Link Failed]\n{0}", log);
-        delete[] log;
+        // HIGH-03 FIX: Use vector instead of raw new
+        std::vector<char> log(length > 0 ? length : 1, '\0');
+        glGetProgramInfoLog(m_RendererID, length, &length, log.data());
+        CORE_ERROR("[Shader Link Failed]\n", log.data());
         
         glDeleteProgram(m_RendererID);
         m_RendererID = 0; // Mark as invalid
@@ -105,7 +106,7 @@ int Shader::GetUniformLocation(const std::string& name)
 
     int loc = glGetUniformLocation(m_RendererID, name.c_str());
     if (loc == -1)
-        CORE_WARN("[Shader] Uniform '{0}' not found or unused", name);
+        CORE_WARN("[Shader] Uniform '", name, "' not found or unused");
         
     m_UniformLocationCache[name] = loc;
     return loc;

@@ -12,6 +12,10 @@ double ViewportInput::s_LastY = 0.0;
 bool ViewportInput::s_First = true;
 bool ViewportInput::s_CameraActive = false;
 
+// MOUSE BUG FIX: Lock position
+double ViewportInput::s_LockX = 0.0;
+double ViewportInput::s_LockY = 0.0;
+
 void ViewportInput::Init(GLFWwindow* window)
 {
     s_Window = window;
@@ -52,7 +56,17 @@ void ViewportInput::UpdateCameraState(bool rightMousePressed)
     {
         s_CameraActive = true;
         s_First = true;   // reset delta
-        glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        // MOUSE BUG FIX: Save cursor position where camera mode was activated
+        glfwGetCursorPos(s_Window, &s_LockX, &s_LockY);
+
+        // Use HIDDEN instead of DISABLED — we'll warp manually
+        glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+        // Enable raw mouse motion if available (more accurate deltas)
+        if (glfwRawMouseMotionSupported())
+            glfwSetInputMode(s_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
         return;
     }
 
@@ -60,6 +74,13 @@ void ViewportInput::UpdateCameraState(bool rightMousePressed)
     if (s_CameraActive && !rightMousePressed)
     {
         s_CameraActive = false;
+
+        // Disable raw mouse motion
+        if (glfwRawMouseMotionSupported())
+            glfwSetInputMode(s_Window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+
+        // MOUSE BUG FIX: Restore cursor to the lock position so it doesn't jump
+        glfwSetCursorPos(s_Window, s_LockX, s_LockY);
         glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         return;
     }
@@ -81,11 +102,18 @@ void ViewportInput::GetMouseDelta(double& dx, double& dy)
         s_LastX = x;
         s_LastY = y;
         s_First = false;
+        // MOUSE BUG FIX: Warp cursor back to lock position on first frame
+        glfwSetCursorPos(s_Window, s_LockX, s_LockY);
+        return;
     }
 
     dx = x - s_LastX;
     dy = s_LastY - y;
 
-    s_LastX = x;
-    s_LastY = y;
+    // MOUSE BUG FIX: Warp cursor back to the locked position every frame
+    // This prevents the hidden cursor from drifting into other panels
+    // and triggering hover effects in ImGui
+    glfwSetCursorPos(s_Window, s_LockX, s_LockY);
+    s_LastX = s_LockX;
+    s_LastY = s_LockY;
 }

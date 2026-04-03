@@ -33,6 +33,9 @@ public:
     static std::shared_ptr<Mesh> CreateCircle(uint32_t segments = 32);
     static std::shared_ptr<Mesh> CreatePlane();
 
+    // CRIT-03 FIX: Release static caches before OpenGL context teardown
+    static void ClearCaches();
+
     VertexArray* GetVertexArray() const { return m_VertexArray.get(); }
     uint32_t GetIndexCount() const { return m_IndexCount; }
     PrimitiveType GetType() const { return m_Type; }
@@ -67,6 +70,12 @@ public:
     }
 
 private:
+    // LOW-04 FIX: GPU resources cannot be safely copied
+    Mesh(const Mesh&) = delete;
+    Mesh& operator=(const Mesh&) = delete;
+    Mesh(Mesh&&) = delete;
+    Mesh& operator=(Mesh&&) = delete;
+
     Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
     {
         m_IndexCount = (uint32_t)indices.size();

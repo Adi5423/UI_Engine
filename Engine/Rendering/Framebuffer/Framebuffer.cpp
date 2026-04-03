@@ -2,6 +2,7 @@
 #include <Core/GLDebug.hpp>
 #include <Core/Log.hpp>
 #include <Core/Application.hpp>
+#include <algorithm>
 
 // Professional game engine limits (Unity/Unreal standards)
 constexpr uint32_t MAX_FRAMEBUFFER_SIZE = 16384; // 16K max dimension
@@ -21,6 +22,13 @@ Framebuffer::~Framebuffer()
 
 void Framebuffer::Invalidate()
 {
+    // HIGH-07 FIX: Prevent 0x0 framebuffer creation (causes driver errors)
+    if (m_Width == 0 || m_Height == 0)
+    {
+        m_Width = std::max(m_Width, 1u);
+        m_Height = std::max(m_Height, 1u);
+    }
+
     if (m_RendererID)
     {
         GL_CALL(glDeleteFramebuffers(1, &m_RendererID));

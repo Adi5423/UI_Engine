@@ -49,3 +49,12 @@ New Folder
 ReleaseBuild
 
 /*.zip
+
+# ImGui layout (user-specific)
+imgui.ini
+
+# Build error logs (machine-specific)
+build_error.txt
+build_error_cmd.txt
+build_output.txt
+error_log.txt

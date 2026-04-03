@@ -148,6 +148,20 @@ public:
         s_History->ExecuteCommand(std::move(cmd));
     }
 
+    // LOW-06 FIX: Camera creation through command system for undo support
+    static void SubmitCreateCamera(Scene* scene, const std::string& name = "Camera")
+    {
+        if (!s_History || !scene) return;
+
+        CORE_INFO("[Bridge] Create Camera Request: ", name);
+
+        auto cmd = std::make_unique<CreateCameraCommand>(
+            scene,
+            name
+        );
+        s_History->ExecuteCommand(std::move(cmd));
+    }
+
 private:
     static CommandHistory* s_History;
 

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <cctype>
 
 #include "Scene.hpp"
 #include "Entity.hpp"
@@ -12,6 +13,93 @@
 
 namespace SceneAPI
 {
+    // =========================================================================
+    // Helper: strip a trailing " (N)" suffix from a name.
+    // Returns the base name without the suffix.
+    // e.g. "Cube (3)" → "Cube",  "Cube" → "Cube"
+    // =========================================================================
+    inline std::string StripNumericSuffix(const std::string& name)
+    {
+        if (name.empty() || name.back() != ')')
+            return name;
+
+        // Walk backwards: find matching '('
+        size_t closePos = name.size() - 1;
+        size_t openPos  = name.rfind('(');
+        if (openPos == std::string::npos || openPos == 0)
+            return name;
+
+        // Everything between '(' and ')' must be digits
+        std::string inner = name.substr(openPos + 1, closePos - openPos - 1);
+        if (inner.empty())
+            return name;
+        for (char c : inner)
+            if (!std::isdigit(static_cast<unsigned char>(c)))
+                return name;
+
+        // There must be a space before '('
+        size_t spacePos = openPos - 1;
+        if (name[spacePos] != ' ')
+            return name;
+
+        return name.substr(0, spacePos);
+    }
+
+    // =========================================================================
+    // NAMING RULE:
+    //   - First entity with a given base name keeps the bare name (e.g. "Cube")
+    //   - Second gets "(1)"  → "Cube (1)"
+    //   - Third gets  "(2)"  → "Cube (2)"
+    //   ... and so on.
+    // The function strips any existing "(N)" suffix before searching so that
+    // duplicating "Cube (1)" still competes in the "Cube" namespace.
+    // =========================================================================
+    inline std::string GenerateUniqueName(Scene& scene, const std::string& desiredName)
+    {
+        // Strip existing "(N)" suffix to obtain the base name.
+        std::string baseName = StripNumericSuffix(desiredName);
+
+        // Collect all current tags in the scene.
+        auto& reg = scene.Reg();
+        bool bareNameUsed = false;
+        int  highestIndex = 0; // highest (N) seen for this base name
+
+        reg.view<TagComponent>().each([&](auto /*e*/, const TagComponent& tc)
+        {
+            const std::string& tag = tc.Tag;
+
+            // Exact match → bare name is already taken.
+            if (tag == baseName)
+            {
+                bareNameUsed = true;
+                return;
+            }
+
+            // Match "baseName (N)" pattern.
+            std::string prefix = baseName + " (";
+            if (tag.size() > prefix.size() &&
+                tag.substr(0, prefix.size()) == prefix &&
+                tag.back() == ')')
+            {
+                std::string numStr = tag.substr(prefix.size(), tag.size() - prefix.size() - 1);
+                bool allDigits = !numStr.empty();
+                for (char c : numStr)
+                    if (!std::isdigit(static_cast<unsigned char>(c))) { allDigits = false; break; }
+                if (allDigits)
+                {
+                    int idx = std::stoi(numStr);
+                    if (idx > highestIndex) highestIndex = idx;
+                    bareNameUsed = true; // at least one variant exists
+                }
+            }
+        });
+
+        if (!bareNameUsed)
+            return baseName;                                    // no collision
+
+        return baseName + " (" + std::to_string(highestIndex + 1) + ")";
+    }
+
     inline void SetNextOrder(Entity entity)
     {
         auto& reg = entity.GetScene()->Reg();
@@ -24,8 +112,9 @@ namespace SceneAPI
 
     inline Entity CreateEmptyEntity(Scene& scene, const std::string& name = "Empty Entity")
     {
-        Entity entity = scene.CreateEntity(name);
-        entity.AddComponent<TagComponent>(name);
+        std::string uniqueName = GenerateUniqueName(scene, name);
+        Entity entity = scene.CreateEntity(uniqueName);
+        entity.AddComponent<TagComponent>(uniqueName);
         entity.AddComponent<TransformComponent>();
         SetNextOrder(entity);
         return entity;
@@ -33,8 +122,9 @@ namespace SceneAPI
 
     inline Entity CreateCameraEntity(Scene& scene, const std::string& name = "Camera")
     {
-        Entity camera = scene.CreateEntity(name);
-        camera.AddComponent<TagComponent>(name);
+        std::string uniqueName = GenerateUniqueName(scene, name);
+        Entity camera = scene.CreateEntity(uniqueName);
+        camera.AddComponent<TagComponent>(uniqueName);
         camera.AddComponent<TransformComponent>();
         camera.AddComponent<CameraComponent>();
         SetNextOrder(camera);
@@ -46,8 +136,9 @@ namespace SceneAPI
                                    const std::shared_ptr<Mesh>& mesh,
                                    const glm::vec3& position = { 0.0f, 0.0f, 0.0f })
     {
-        Entity entity = scene.CreateEntity(name);
-        entity.AddComponent<TagComponent>(name);
+        std::string uniqueName = GenerateUniqueName(scene, name);
+        Entity entity = scene.CreateEntity(uniqueName);
+        entity.AddComponent<TagComponent>(uniqueName);
         entity.AddComponent<TransformComponent>(position);
         entity.AddComponent<MeshComponent>(mesh);
         SetNextOrder(entity);
@@ -60,8 +151,9 @@ namespace SceneAPI
                                    const std::shared_ptr<Mesh>& mesh,
                                    const glm::vec3& position = { 0.0f, 0.0f, 0.0f })
     {
-        Entity entity = scene.CreateEntityWithUUID(uuid, name);
-        entity.AddComponent<TagComponent>(name);
+        std::string uniqueName = GenerateUniqueName(scene, name);
+        Entity entity = scene.CreateEntityWithUUID(uuid, uniqueName);
+        entity.AddComponent<TagComponent>(uniqueName);
         entity.AddComponent<TransformComponent>(position);
         entity.AddComponent<MeshComponent>(mesh);
         SetNextOrder(entity);
@@ -72,16 +164,20 @@ namespace SceneAPI
     {
         if (!source) return Entity();
 
-        std::string name = "Entity";
+        std::string srcName = "Entity";
         if (source.HasComponent<TagComponent>())
-            name = source.GetComponent<TagComponent>().Tag;
+            srcName = source.GetComponent<TagComponent>().Tag;
 
-        // Simple name indexing logic: if ends with number, increment, else add " 2"
-        // For simplicity here just add " 2" or " (Instance)"
-        name += isLinked ? " (Instance)" : " 2";
+        // Strip any existing "(N)" suffix so duplicates compete in the same namespace.
+        srcName = StripNumericSuffix(srcName);
+        // For linked duplicates append " (Instance)" as the base before uniquing.
+        if (isLinked)
+            srcName += " (Instance)";
 
-        Entity duplicate = scene.CreateEntity(name);
-        duplicate.AddComponent<TagComponent>(name);
+        std::string uniqueName = GenerateUniqueName(scene, srcName);
+
+        Entity duplicate = scene.CreateEntity(uniqueName);
+        duplicate.AddComponent<TagComponent>(uniqueName);
 
         if (source.HasComponent<TransformComponent>())
             duplicate.AddComponent<TransformComponent>(source.GetComponent<TransformComponent>());
@@ -113,14 +209,19 @@ namespace SceneAPI
         Entity existing = scene.GetEntityByUUID(newUUID);
         if (existing) return existing;
 
-        std::string name = "Entity";
+        std::string srcName = "Entity";
         if (source.HasComponent<TagComponent>())
-            name = source.GetComponent<TagComponent>().Tag;
+            srcName = source.GetComponent<TagComponent>().Tag;
 
-        name += isLinked ? " (Instance)" : " 2";
+        // Strip any existing "(N)" suffix so duplicates compete in the same namespace.
+        srcName = StripNumericSuffix(srcName);
+        if (isLinked)
+            srcName += " (Instance)";
 
-        Entity duplicate = scene.CreateEntityWithUUID(newUUID, name);
-        duplicate.AddComponent<TagComponent>(name);
+        std::string uniqueName = GenerateUniqueName(scene, srcName);
+
+        Entity duplicate = scene.CreateEntityWithUUID(newUUID, uniqueName);
+        duplicate.AddComponent<TagComponent>(uniqueName);
 
         if (source.HasComponent<TransformComponent>())
             duplicate.AddComponent<TransformComponent>(source.GetComponent<TransformComponent>());

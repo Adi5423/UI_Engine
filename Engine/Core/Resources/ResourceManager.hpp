@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include <mutex>
 #include <Rendering/Shaders/Shader.hpp>
 #include <Rendering/Texture.hpp>
 
@@ -17,6 +18,7 @@
  * Features:
  * - Automatic caching (prevents duplicate loads)
  * - Reference counting (via shared_ptr)
+ * - HIGH-04 FIX: Thread-safe operations via mutex
  * - Centralized asset access
  * 
  * Usage:
@@ -36,9 +38,6 @@ public:
     static std::shared_ptr<Texture2D> LoadTexture(const std::string& name, const std::string& path);
     static std::shared_ptr<Texture2D> GetTexture(const std::string& name);
 
-    // Models (Backbone ready - to be implemented)
-    // static std::shared_ptr<Model> LoadModel(const std::string& name, const std::string& path);
-
     static void Clear();
 
 private:
@@ -52,4 +51,7 @@ private:
     // Storage Cache
     static std::unordered_map<std::string, std::shared_ptr<Shader>> s_Shaders;
     static std::unordered_map<std::string, std::shared_ptr<Texture2D>> s_Textures;
+
+    // HIGH-04 FIX: Mutex for thread-safe cache access
+    static std::mutex s_Mutex;
 };

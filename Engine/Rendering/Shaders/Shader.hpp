@@ -11,6 +11,12 @@ public:
     Shader(const std::string& vertexSrc, const std::string& fragmentSrc);
     ~Shader();
 
+    // LOW-04 FIX: GPU resource handles cannot be safely copied
+    Shader(const Shader&) = delete;
+    Shader& operator=(const Shader&) = delete;
+    Shader(Shader&&) = delete;
+    Shader& operator=(Shader&&) = delete;
+
     void Bind() const;
     void Unbind() const;
 

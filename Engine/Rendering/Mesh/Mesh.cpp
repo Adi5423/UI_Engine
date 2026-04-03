@@ -3,12 +3,17 @@
 #include <cmath>
 #include <unordered_map>
 
+// CRIT-03 FIX: File-scope caches so ClearCaches() can release them
+static std::shared_ptr<Mesh> s_CubeMesh = nullptr;
+static std::shared_ptr<Mesh> s_TriangleMesh = nullptr;
+static std::shared_ptr<Mesh> s_PlaneMesh = nullptr;
+static std::unordered_map<uint32_t, std::shared_ptr<Mesh>> s_CircleCache;
+
 //
 // ---------- 3D CUBE ----------
 //
 std::shared_ptr<Mesh> Mesh::CreateCube()
 {
-    static std::shared_ptr<Mesh> s_CubeMesh = nullptr;
     if (s_CubeMesh)
         return s_CubeMesh;
 
@@ -101,7 +106,6 @@ std::shared_ptr<Mesh> Mesh::CreateCube()
 //
 std::shared_ptr<Mesh> Mesh::CreateTriangle3D()
 {
-    static std::shared_ptr<Mesh> s_TriangleMesh = nullptr;
     if (s_TriangleMesh)
         return s_TriangleMesh;
 
@@ -169,7 +173,6 @@ std::shared_ptr<Mesh> Mesh::CreateCircle(uint32_t segments)
     
     if (segments < 3) segments = 3;
 
-    static std::unordered_map<uint32_t, std::shared_ptr<Mesh>> s_CircleCache;
     if (s_CircleCache.find(segments) != s_CircleCache.end())
         return s_CircleCache[segments];
 
@@ -213,7 +216,6 @@ std::shared_ptr<Mesh> Mesh::CreateCircle(uint32_t segments)
 //
 std::shared_ptr<Mesh> Mesh::CreatePlane()
 {
-    static std::shared_ptr<Mesh> s_PlaneMesh = nullptr;
     if (s_PlaneMesh)
         return s_PlaneMesh;
 
@@ -232,4 +234,15 @@ std::shared_ptr<Mesh> Mesh::CreatePlane()
     s_PlaneMesh = std::shared_ptr<Mesh>(new Mesh(vertices, indices));
     s_PlaneMesh->m_Type = PrimitiveType::Plane;
     return s_PlaneMesh;
+}
+
+//
+// ---------- CRIT-03 FIX: Clear all static caches before OpenGL context teardown ----------
+//
+void Mesh::ClearCaches()
+{
+    s_CubeMesh.reset();
+    s_TriangleMesh.reset();
+    s_PlaneMesh.reset();
+    s_CircleCache.clear();
 }
