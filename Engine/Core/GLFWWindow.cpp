@@ -39,6 +39,9 @@ public:
 
         if (!s_GLFWInitialized)
         {
+#if defined(__linux__) && defined(GLFW_PLATFORM) && defined(GLFW_PLATFORM_X11)
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+#endif
             int success = glfwInit();
             if (success)
             {
